@@ -1,13 +1,36 @@
 var prelude = "module Main where\n" +
+    "\n" +
     "import Prelude\n" +
     "import Data.Foldable (fold)\n" +
     "import Data.Int\n" +
     "import Control.Monad.Eff.Console (logShow)\n" +
     "import TryPureScript\n" +
-    "-- needed to have undefined\n" +
+    "import Test.QuickCheck (class Arbitrary, quickCheck)\n" +
+    "import Test.QuickCheck.Gen (chooseInt)\n" +
     "import Unsafe.Coerce (unsafeCoerce)\n" +
+    "\n" +
     "undefined :: forall a. a\n" +
     "undefined = unsafeCoerce unit\n" +
+    "\n" +
+    "derive instance eqNat :: Eq Nat\n" +
+    "instance arbNat :: Arbitrary Nat where\n" +
+    "  arbitrary = do\n" +
+    "    x <- chooseInt 0 (500)\n" +
+    "    pure $ fromInt x\n" +
+    "\n" +
+    "fromInt :: Int -> Nat\n" +
+    "fromInt x | x <= 0 = Zero\n" +
+    "fromInt x = Add1 $ fromInt (x-1)\n" +
+    "\n" +
+    "plusId :: Nat -> Boolean\n" +
+    "plusId n = n `plusFold` Zero == n\n" +
+    "\n" +
+    "timesId :: Nat -> Boolean\n" +
+    "timesId n = n `timesFold` (Add1 Zero) == n\n" +
+    "\n" +
+    "powId :: Nat -> Boolean\n" +
+    "powId n = n `pow` (Add1 Zero) == n\n" +
+    "main = do quickCheck plusId\n" +
     "\n";
 
 function createEditor(element) {
@@ -16,7 +39,7 @@ function createEditor(element) {
   editor.setHighlightActiveLine(false);
   editor.commands.addCommand({
     name: 'evaluate',
-    bindKey: {win: 'Ctrl-Enter'},
+    bindKey: {win: 'Ctrl-Enter', mac: 'Command-Enter'},
     exec: function(editor) {
       evaluate(editor);
     },
@@ -38,8 +61,6 @@ function getAllSources() {
 }
 
 function evaluate(editor) {
-  editor.container.nextSibling.nextSibling.innerHTML = ''
-  console.log(prelude + getAllSources())
   $.ajax({
     url: 'https://compile.purescript.org/try/compile',
     dataType: 'json',
@@ -47,11 +68,21 @@ function evaluate(editor) {
     method: 'POST',
     contentType: 'text/plain',
     success: function(res) {
+      var identifier = $(editor.container).data('identifier');
       if (res.error) {
-        var error = res.error;
-        editor.container.nextSibling.nextSibling.innerHTML = error.contents[0].message
+        $('p.js-results.' + identifier).html(res.error.contents[0].message)
+        $('img.js-nok.' + identifier).show()
       } else {
-        // this could be done once
+
+        var consoleLogRef = console.log
+        window.console.log = function(result) {
+          if (result === '100/100 test(s) passed.') {
+            $('img.js-nok.' + identifier).hide()
+            $('img.js-ok.' + identifier).show()
+          }
+        }
+
+        // TODO this could be done once
         $.get('https://compile.purescript.org/try/bundle').done(function(bundle) {
           var replaced = res.js.replace(/require\("[^"]*"\)/g, function(s) {
             return"PS['" + s.substring(12, s.length - 2) + "']";

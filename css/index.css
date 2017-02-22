@@ -1,0 +1,9 @@
+.js-ok,.js-nok {
+  width: 50px;
+  display: none;
+}
+
+.js-results {
+  white-space: pre-wrap;
+  color: red;
+}
