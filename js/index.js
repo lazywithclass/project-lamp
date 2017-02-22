@@ -60,6 +60,11 @@ function getAllSources() {
 }
 
 function evaluate(editor) {
+  // clear all
+  $('.js-ok').hide()
+  $('.js-nok').hide()
+  $('.js-results').html('')
+
   $.ajax({
     url: 'https://compile.purescript.org/try/compile',
     dataType: 'json',
@@ -95,38 +100,25 @@ function evaluate(editor) {
           try {
             window.quickCheckUtil(window.plusId)();
             $('.js-ok.plus-fold').show();
-            $('.js-nok.plus-fold').hide();
           } catch(e) {
-            $('.js-ok.plus-fold').hide();
             $('.js-nok.plus-fold').show();
           }
 
           try {
             window.quickCheckUtil(window.timesId)();
             $('.js-ok.times-fold').show();
-            $('.js-nok.times-fold').hide();
           } catch(e) {
-            $('.js-ok.times-fold').hide();
             $('.js-nok.times-fold').show();
           }
 
           try {
             window.quickCheckUtil(window.powId)();
             $('.js-ok.pow-fold').show();
-            $('.js-nok.pow-fold').hide();
           } catch(e) {
-            $('.js-ok.pow-fold').hide();
             $('.js-nok.pow-fold').show();
           }
-          resetResults()
         })
       }
     }
   })
-}
-
-function resetResults() {
-  $('p.js-results.plus-fold').html('')
-  $('p.js-results.times-fold').html('')
-  $('p.js-results.pow-fold').html('')
 }
