@@ -29,8 +29,7 @@ var prelude = "module Main where\n" +
     "timesId n = n `timesFold` (Add1 Zero) == n\n" +
     "\n" +
     "powId :: Nat -> Boolean\n" +
-    "powId n = n `pow` (Add1 Zero) == n\n" +
-    "main = do quickCheck plusId\n" +
+    "powId n = n `powFold` (Add1 Zero) == n\n" +
     "\n";
 
 function createEditor(element) {
@@ -71,18 +70,9 @@ function evaluate(editor) {
       var identifier = $(editor.container).data('identifier');
       if (res.error) {
         $('p.js-results.' + identifier).html(res.error.contents[0].message)
+        $('img.js-ok.' + identifier).hide()
         $('img.js-nok.' + identifier).show()
       } else {
-
-        var consoleLogRef = console.log
-        window.console.log = function(result) {
-          if (result === '100/100 test(s) passed.') {
-            $('p.js-results.' + identifier).html('')
-            $('img.js-nok.' + identifier).hide()
-            $('img.js-ok.' + identifier).show()
-          }
-        }
-
         // TODO this could be done once
         $.get('https://compile.purescript.org/try/bundle').done(function(bundle) {
           var replaced = res.js.replace(/require\("[^"]*"\)/g, function(s) {
@@ -92,13 +82,51 @@ function evaluate(editor) {
               [ 'window.module = {};',
                 '(function(module) {',
                 replaced,
+                'window.quickCheckUtil = Test_QuickCheck.quickCheck(Test_QuickCheck.testableFunction(arbNat)(Test_QuickCheck.testableBoolean));',
+                'window.plusId = plusId',
+                'window.timesId = timesId',
+                'window.powId = powId',
                 '})(module);',
                 'module.exports.main && module.exports.main();',
               ].join('\n');
           var scripts = [bundle, wrapped].join("\n");
           eval(scripts)
+
+          try {
+            window.quickCheckUtil(window.plusId)();
+            $('.js-ok.plus-fold').show();
+            $('.js-nok.plus-fold').hide();
+          } catch(e) {
+            $('.js-ok.plus-fold').hide();
+            $('.js-nok.plus-fold').show();
+          }
+
+          try {
+            window.quickCheckUtil(window.timesId)();
+            $('.js-ok.times-fold').show();
+            $('.js-nok.times-fold').hide();
+          } catch(e) {
+            $('.js-ok.times-fold').hide();
+            $('.js-nok.times-fold').show();
+          }
+
+          try {
+            window.quickCheckUtil(window.powId)();
+            $('.js-ok.pow-fold').show();
+            $('.js-nok.pow-fold').hide();
+          } catch(e) {
+            $('.js-ok.pow-fold').hide();
+            $('.js-nok.pow-fold').show();
+          }
+          resetResults()
         })
       }
     }
   })
+}
+
+function resetResults() {
+  $('p.js-results.plus-fold').html('')
+  $('p.js-results.times-fold').html('')
+  $('p.js-results.pow-fold').html('')
 }
