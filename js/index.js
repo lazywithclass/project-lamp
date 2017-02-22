@@ -77,6 +77,7 @@ function evaluate(editor) {
         var consoleLogRef = console.log
         window.console.log = function(result) {
           if (result === '100/100 test(s) passed.') {
+            $('p.js-results.' + identifier).html('')
             $('img.js-nok.' + identifier).hide()
             $('img.js-ok.' + identifier).show()
           }
