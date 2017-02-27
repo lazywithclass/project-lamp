@@ -3,10 +3,18 @@ module Main where
 import Prelude
 import Data.List
 import Data.Tuple
+import Data.Maybe
 import Control.Monad.Eff.Console (logShow)
 import Unsafe.Coerce (unsafeCoerce)
 import Test.QuickCheck (class Arbitrary, quickCheck)
 import Test.QuickCheck.Gen (chooseInt)
+
+data Lam = Var String
+         | Abs String Lam
+         | Lam Lam
+
+identity = Abs "x" (Var "x")           
+id = \x -> x
 
 undefined :: forall a. a
 undefined = unsafeCoerce unit
@@ -85,7 +93,7 @@ factFold :: Nat -> Nat
 factFold n = snd $ foldNat
              (Tuple Zero (Add1 Zero))
              (\t -> case t of
-                 Tuple n r -> Tuple (Add1 n) (times (Add1 n) r))
+                 Tuple nat r -> Tuple (Add1 n) (times (Add1 nat) r))
              n
 
 ---| properties
@@ -111,14 +119,30 @@ timesId n = n `timesFold` (Add1 Zero) == n
 powId :: Nat -> Boolean
 powId n = n `powFold` (Add1 Zero) == n
 
----| main with tests
+-- these are variables
+x = 5
+y = 6
+
+-- this is a function
+foo1 = \x -> x
+
+-- this is also a function
+foo2 f x = \y -> f x
+
+-- this is how to apply functions
+app1 = foo1 x
+app2 = foo2 foo1 y x
+
+
+user = undefined
+
 main = do
-  -- logShow $ quicksort (5 : 4 : 10 : 2 : 0 : Nil)
-  quickCheck factProp
-  quickCheck plusId
-  quickCheck plusFoldIsPlus
-  quickCheck timesId
-  quickCheck timesFoldIsTimes
-  quickCheck powId
+  logShow $ quicksort (5 : 4 : 10 : 2 : 0 : Nil)
+  -- quickCheck factProp
+  -- quickCheck plusId
+  -- quickCheck plusFoldIsPlus
+  -- quickCheck timesId
+  -- quickCheck timesFoldIsTimes
+  -- quickCheck powId
           -- quickCheck powFoldIsPow -- bad idea
           
