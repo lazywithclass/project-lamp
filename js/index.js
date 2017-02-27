@@ -1,36 +1,33 @@
-var prelude = "module Main where\n" +
-    "\n" +
-    "import Prelude\n" +
-    "import Data.Foldable (fold)\n" +
-    "import Data.Int\n" +
-    "import Control.Monad.Eff.Console (logShow)\n" +
-    "import TryPureScript\n" +
-    "import Test.QuickCheck (class Arbitrary, quickCheck)\n" +
-    "import Test.QuickCheck.Gen (chooseInt)\n" +
-    "import Unsafe.Coerce (unsafeCoerce)\n" +
-    "\n" +
-    "undefined :: forall a. a\n" +
-    "undefined = unsafeCoerce unit\n" +
-    "\n" +
-    "derive instance eqNat :: Eq Nat\n" +
-    "instance arbNat :: Arbitrary Nat where\n" +
-    "  arbitrary = do\n" +
-    "    x <- chooseInt 0 (500)\n" +
-    "    pure $ fromInt x\n" +
-    "\n" +
-    "fromInt :: Int -> Nat\n" +
-    "fromInt x | x <= 0 = Zero\n" +
-    "fromInt x = Add1 $ fromInt (x-1)\n" +
-    "\n" +
-    "plusId :: Nat -> Boolean\n" +
-    "plusId n = n `plusFold` Zero == n\n" +
-    "\n" +
-    "timesId :: Nat -> Boolean\n" +
-    "timesId n = n `timesFold` (Add1 Zero) == n\n" +
-    "\n" +
-    "powId :: Nat -> Boolean\n" +
-    "powId n = n `powFold` (Add1 Zero) == n\n" +
-    "\n";
+$(function() {
+  console.log('oh hai!')
+
+  $('.js-editor').each(function() {
+    createEditor(this)
+  });
+});
+
+
+function pageCode() {
+  let all = 'module Main where\n' +
+      '\n' +
+      'import Prelude\n' +
+      'import Data.Foldable (fold)\n' +
+      'import Data.Int\n' +
+      'import Control.Monad.Eff.Console (logShow)\n' +
+      'import TryPureScript\n' +
+      'import Test.QuickCheck (class Arbitrary, quickCheck)\n' +
+      'import Test.QuickCheck.Gen (chooseInt)\n' +
+      'import Unsafe.Coerce (unsafeCoerce)\n' +
+      '\n' +
+      'undefined :: forall a. a\n' +
+      'undefined = unsafeCoerce unit\n'
+
+  return (snippet) => {
+    if (snippet == null) snippet = '\n'
+    all = all.concat(snippet).concat('\n')
+    return all
+  }
+}
 
 function createEditor(element) {
   var editor = ace.edit(element);
@@ -48,77 +45,36 @@ function createEditor(element) {
   return editor
 }
 
-function getAllSources() {
-  var sources = []
+function getAllSources(collector) {
   $('.js-editor').each(function() {
     var editor = ace.edit(this)
-    sources.push(editor.getValue())
-    sources.push('')
+    collector(editor.getValue())
   });
-
-  return sources.join('\n')
+  return collector()
 }
 
-function evaluate(editor) {
-  // clear all
+function clearFeedbacks() {
   $('.js-ok').hide()
   $('.js-nok').hide()
   $('.js-results').html('')
+}
 
+function compile(sources, success, failure) {
   $.ajax({
     url: 'https://compile.purescript.org/try/compile',
     dataType: 'json',
-    data: prelude + getAllSources(),
+    data: sources,
     method: 'POST',
     contentType: 'text/plain',
-    success: function(res) {
-      var identifier = $(editor.container).data('identifier');
-      if (res.error) {
-        $('p.js-results.' + identifier).html(res.error.contents[0].message)
-        $('img.js-ok.' + identifier).hide()
-        $('img.js-nok.' + identifier).show()
-      } else {
-        // TODO this could be done once
-        $.get('https://compile.purescript.org/try/bundle').done(function(bundle) {
-          var replaced = res.js.replace(/require\("[^"]*"\)/g, function(s) {
-            return"PS['" + s.substring(12, s.length - 2) + "']";
-          });
-          var wrapped =
-              [ 'window.module = {};',
-                '(function(module) {',
-                replaced,
-                'window.quickCheckUtil = Test_QuickCheck.quickCheck(Test_QuickCheck.testableFunction(arbNat)(Test_QuickCheck.testableBoolean));',
-                'window.plusId = plusId',
-                'window.timesId = timesId',
-                'window.powId = powId',
-                '})(module);',
-                'module.exports.main && module.exports.main();',
-              ].join('\n');
-          var scripts = [bundle, wrapped].join("\n");
-          eval(scripts)
-
-          try {
-            window.quickCheckUtil(window.plusId)();
-            $('.js-ok.plus-fold').show();
-          } catch(e) {
-            $('.js-nok.plus-fold').show();
-          }
-
-          try {
-            window.quickCheckUtil(window.timesId)();
-            $('.js-ok.times-fold').show();
-          } catch(e) {
-            $('.js-nok.times-fold').show();
-          }
-
-          try {
-            window.quickCheckUtil(window.powId)();
-            $('.js-ok.pow-fold').show();
-          } catch(e) {
-            $('.js-nok.pow-fold').show();
-          }
-        })
-      }
-    }
+    success: success
   })
+}
+
+function generateUuid() { 
+  var d = new Date().getTime();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = (d + Math.random() * 16) % 16 | 0;
+    d = Math.floor(d / 16);
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
 }
