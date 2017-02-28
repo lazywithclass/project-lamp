@@ -18,6 +18,10 @@ function evaluate(editor) {
             "\n" +
             "powId :: Nat -> Boolean\n" +
             "powId n = n `powFold` (Add1 Zero) == n\n" +
+	    "\n" +
+	    "factProp :: Nat -> Boolean\n" +
+	    "factProp x | (toInt x) > 5 = true\n" +
+	    "factProp n = fact n == factFold n\n" +
             "\n")
   clearFeedbacks()
 
@@ -41,6 +45,7 @@ function evaluate(editor) {
               'window.plusId = plusId',
               'window.timesId = timesId',
               'window.powId = powId',
+	      'window.factProp = factProp',
               '})(module);',
               'module.exports.main && module.exports.main();',
             ].join('\n');
@@ -67,6 +72,13 @@ function evaluate(editor) {
         } catch(e) {
           $('.js-nok.pow-fold').show();
         }
+
+	try {
+	    window.quickCheckUtil(window.factProp)();
+	    $('.js-ok.fact-fold').show();
+	} catch(e) {
+	    $('.js-nok.fact-fold').show();
+	}
       })
     }
   })
