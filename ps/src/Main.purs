@@ -93,7 +93,7 @@ factFold :: Nat -> Nat
 factFold n = snd $ foldNat
              (Tuple Zero (Add1 Zero))
              (\t -> case t of
-                 Tuple nat r -> Tuple (Add1 n) (times (Add1 nat) r))
+                 Tuple nat r -> Tuple (Add1 n) (timesFold (Add1 nat) r))
              n
 
 ---| properties
@@ -133,13 +133,37 @@ foo2 f x = \y -> f x
 app1 = foo1 x
 app2 = foo2 foo1 y x
 
+-- fixed
+wrong :: Int -> Boolean -> Int
+wrong i b = i
 
-user = undefined
+alsoWrong :: Int
+alsoWrong = wrong 42 false
+
+append :: forall a. List a -> List a -> List a
+append Nil ys    = ys
+append (x:xs) ys = x:(append xs ys)
+
+rev :: forall a. List a -> List a
+rev Nil    = Nil
+rev (x:xs) = append (rev xs) (singleton x)
+
+appendRev :: forall a. List a -> List a -> List a
+appendRev Nil ys    = ys
+appendRev (x:xs) ys = appendRev xs (x:ys)
+
+rev' :: forall a. List a -> List a
+rev' xs = appendRev xs Nil
 
 main = do
-  logShow $ quicksort (5 : 4 : 10 : 2 : 0 : Nil)
+  logShow $ rev $ append (1:2:3:Nil) (4:5:6:Nil)
+  -- logShow $ "Slow:::"
+  -- logShow $ rev (1..10000)
+  logShow $ "Fast:::"
+  logShow $ rev' (1..10000)
+  -- logShow $ quicksort (5 : 4 : 10 : 2 : 0 : Nil)
   -- quickCheck factProp
-  -- quickCheck plusId
+  quickCheck plusId
   -- quickCheck plusFoldIsPlus
   -- quickCheck timesId
   -- quickCheck timesFoldIsTimes
