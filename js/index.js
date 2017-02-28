@@ -13,6 +13,7 @@ function pageCode() {
       'import Prelude\n' +
       'import Data.Foldable (fold)\n' +
       'import Data.Int\n' +
+      'import Data.Tuple\n' +
       'import Control.Monad.Eff.Console (logShow)\n' +
       'import TryPureScript\n' +
       'import Test.QuickCheck (class Arbitrary, quickCheck)\n' +
