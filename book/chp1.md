@@ -109,6 +109,23 @@ meaningOfLife = wrong false 42
 There are many more mistakes that trigger type errors, however, it is probably safe to say that the most common of these errors are generally associated with *incorrectly using/defining functions* (as is the case with the above).
 
 #### b. Just What I Needed -- User Defined Types
+<!-- TODO:
+Pattern matching
+deriving
+
+-->
 #### c. The Lord of the Foos -- Polymorphism
 
 ### 3. Recursion and its Principles
+
+#### a. Over, and Over, and Over, and Over...
+#### b. The Essence of Recursion -- Fold
+
+### Exercises:
+<!-- TODO:
+
+append-reverse
+define shapes, write a function
+left and right folds
+
+-->
