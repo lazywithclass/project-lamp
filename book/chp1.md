@@ -27,7 +27,7 @@ foo2 f x y = f x
 app1 = foo1 x
 app2 = foo2 foo1 y x
 ```
-In functional languages, one is free to assign values (i.e., Integers, Booleans, etc.) to variables. As is the case in PureScript and Haskell, variables (including function names) are constrained by *lower-case* names. It is, however, impossible to *re-assign* new values to variables (i.e., we cannot re-associate `x` with another value once it has already been associated; it's always `5`).
+In functional languages, one is free to assign values (i.e., Integers, Booleans, etc.) to variables. As is the case in PureScript and Haskell, variables (including function names) are required to begin with a *lower-case* letter. It is, however, impossible to *re-assign* new values to variables (i.e., we cannot re-associate `x` with another value once it has already been associated; it's always `5`).
 
 A key feature in functional languages is the appearance of functions as *first-class* values. This simply means that one can do with functions as one can do with normal values, as is the case with `foo1`, which itself is a variable associated with the value `(\x -> x)`, an example of an *anonymous function*. Having functions first-class allows one to pass functions as arguments to other functions (as is the case in `foo2`'s first argument, `f`). As we see later on in this chapter, this allows a considerable amount of flexibility in writing our code.
 
@@ -86,15 +86,15 @@ An added benefit of understanding β-reduction is that every reduction can be th
 
 <!-- The phrase *Turing-complete* is just a fancy way of describing a language that can encode *every possible computation*, which makes the λ-calculus the perfect foundation for a programming language. -->
 
-### 2. What is this about Types and Programming Languages?
+### 2. Types in Programming Languages
 Many programming languages, functional or otherwise, feature entities that are known as *types*. The more familiar types, such as `Int`, `Boolean` and `String`, are found in virtually every programming language and contain (or, in math lingo, are *inhabited*) by values like `42`, `true` and `"apple"`, respectively. In some functional languages, however, types play a more intimate and important role, giving them certain *benefits* and *abilities* over others. In this chapter, we introduce the basics about types in purely functional languages and as well as a few key concepts about them that every functional programmer should be aware of.
 
 <!-- In a sense, types go hand-in-hand with functional languages like peanut butter goes with jelly (or whatever one likes with their peanut butter sandwich). -->
 
 #### a. Everyone gets a Type! -- Inhabitance
-In a statically typed language, one has *values*, and one has *types*. The two are related in a rather simple way: *every value has a type*. For the purposes of this book, we need not go any further than this statement (which is an aside to the reader that there is indeed more to it than that).
+In a statically typed language, one has *values*, and one has *types*. The two are related in a rather simple way: *every value has a type*. For the purposes of this chapter, we need not go any further than this statement (which is an aside to the reader that there is indeed more to it than that).
 
-Alas, the benefit of having this constraint is that everything one chooses to write inside of a typed programming language *must* have a corresponding type, and, indeed, that type must be the *correct* one. If, for example, a programmer mistakenly cause an expression to be typed incorrectly, the program fails to run, and the programmer receives a *type error* from the languages *type checker*. One might have seen a few of these while trying to solve the exercises in the introduction of this book.
+Alas, the benefit of having this constraint is that everything one chooses to write inside of a typed programming language *must* have a corresponding type, and, indeed, that type must be the *correct* one. If, for example, a programmer mistakenly causes an expression to be typed incorrectly, the program fails to run, and the programmer receives a *type error* from the language's *type checker*. One might have seen a few of these while trying to solve the exercises in the introduction of this book.
 
 But never fear! Type errors are here to help. It might seem difficult at first, and it might seem that one has to (painfully) wrestle with the type system to get *any* program working at all! However, the type system is actually here to help the programmer correctly specify what they want their program to do and know precisely what needs to happen to ammend something done incorrectly. One not need look any further than JavaScript to see how helpful type errors are (see **undefined errors**).
 
@@ -106,12 +106,11 @@ wrong i b = b
 meaningOfLife :: Int
 meaningOfLife = wrong false 42
 ```
-<!-- TODO
+When one is presented with type errors, there usually isn't one set way to fix everything. In our simple example above, we can actually do one of several fixes to relieve ourselves of the type error. In general, one can safely use the information provided by the type error to fix type errors, proactively fixing individual errors until one's program finally loads, which is precisely what we do below.
 
-Details on how to fix the above?
+The first of these is to fix the type error of `wrong`, which *should* be a function that takes an `Int` and a `Boolean` and returns an `Int`. Intuitively, it would make sense to return the `Int` passed to the function (viz. the `i` parameter) instead of returning `b`, the `Boolean`, which is how the function is incorrectly defined above. After fixing this mistake, we still have another type error inside of `meaningOfLife`. This mistake is a little bit sneakier than the one prior to it, since we have to inspect the internal definition of `meaningOfLife`. Upon closer inspection, it appears that we have simply misused `wrong` and mixed up the order of its arguments!
 
--->
-There are many more mistakes that trigger type errors, however, it is probably safe to say that the most common of these errors are generally associated with *incorrectly using/defining functions* (as is the case with the above).
+There are many more mistakes that trigger type errors, some more complex than others. It is, however, probably safe to say that the most common of these errors are generally associated with *incorrectly using/defining functions* (as is the case with the example above).
 
 #### b. Just What I Needed -- User Defined Types
 <!-- TODO:
@@ -119,6 +118,45 @@ Pattern matching
 deriving
 
 -->
+
+It would be a bit silly to say all these great and wonderful things about the power of types in functional languages if we cannot define our own types. Fortunately, in many functional languages, we are free to do so and still reap the benefits of the powerful type system and type chcecker for our own user-defined types.
+
+Defining our own types require that we adhere to a simple set of rules. To make this immediately clear, we'll define the type of `Point`:
+```haskell
+data Point = Point Number Number
+```
+That is, a `Point` is a type with one *type-constructor* (also called `Point`), which is a function that takes two `Number`s, respresnting the `x` and `y` values of a given point on an x-y axis. Here, unlike variables, the names of types and type constructors must start with an *upper-case* letter. As a liberty to the programmer, PureScript allows type-constructors to use the same name as the type that they are defined for only when the given type is designed to have only *one* constructor (this practice is called constructor *punning*). That is, in the event that a type requires more than one constructor, each constructor requires a unique name to properly differentiate it from the other ways of constructing the given type.
+
+This is latest statement is due to the fact that type-constructors are considered a special kind of value. Unlike normal values (e.g. numbers), type-constructors can be *pattern matched*, which allows for an elegant way of defining functions over some given types. As an example, let's define a type for `IntList`, the type inhabited by lists of Integers, then define a function `isEmpty` that determines whether or not a given `IntList` contains no elements or not.
+
+First, the definition of `IntList`:
+```haskell
+data IntList = Empty
+             | Push Int IntList
+```
+Here, unlike `Point`, `IntList` requires two constructors: `Empty` and `Push`. These constructors represent the two ways in which to construct an `IntList` (i.e., an *empty* one or a way to add individually add `Int` elements to another `IntList`). This is a common way of defining *linked-list*-like structures in functional languages. For example, here a few `IntList`s:
+```haskell
+emp :: IntList
+emp = Empty
+
+ls1 :: IntList
+ls1 = Push 2 emp
+
+ls2 :: IntList
+ls2 = Push 1 ls1
+```
+Now, let's define `isEmpty`. With the power of pattern matching, writing this function becomes rather intuitive, since we can simply match over the possible values (as determined by the definition) of `IntList` to determine whether or not the given list is empty (i.e., `Empty`) or not. We don't need any special conditional expressions at all!
+```haskell
+isEmpty :: IntList -> Boolean
+isEmpty Empty       = true
+isEmpty (Push i is) = false
+```
+Up until now, we haven't mentioned the pecuilarities of the `Boolean` type in PureScript. That is, the values of `true` and `false` *should* start with a capital letters (just as they do in Haskell) since they are actually both type-constructors for the `Boolean` type. In the case of PureScript, however, these two entitites appear lower-cased solely because this is how they appear in JavaScript.
+
+**Random Question**: What happens when we pattern match over a constructor that doesn't belong to the type that we are defining our function over? Say, for example, we add the following case to `isEmpty`:
+```haskell
+isEmpty false = false
+```
 #### c. The Lord of the Foos -- Polymorphism
 
 ### 3. Recursion and its Principles
