@@ -106,6 +106,11 @@ wrong i b = b
 meaningOfLife :: Int
 meaningOfLife = wrong false 42
 ```
+<!-- TODO
+
+Details on how to fix the above?
+
+-->
 There are many more mistakes that trigger type errors, however, it is probably safe to say that the most common of these errors are generally associated with *incorrectly using/defining functions* (as is the case with the above).
 
 #### b. Just What I Needed -- User Defined Types
@@ -129,3 +134,44 @@ define shapes, write a function
 left and right folds
 
 -->
+#### Equational Reasoning
+Consider the following definitions of `append` and `rev`.
+
+```haskell
+append :: forall a. List a -> List a -> List a
+append Nil ys    = ys
+append (x:xs) ys = x:(append xs ys)
+
+rev :: forall a. List a -> List a
+rev Nil    = Nil
+rev (x:xs) = append (rev xs) (singleton x)
+```
+
+This implementation of `rev` (reverses a list) works quite well for smaller sized lists. However, on larger lists, its performance suffers quite a bit, due to the fact that it also calls another recursively defined function, `append`.
+
+We can improve its performance using *equational reasoning*, as described in the first section of this chapter, to remove the dependency of `rev` on `append`. We can do this by implementing another function that specializes the *appending* job that is done in `rev`. We'll call this function `appendRev` and use it to define `fastRev`.
+
+We'll start by using this preliminary definition of `appendRev`:
+<!-- NOTE: DO NOT MAKE THIS CODE INTERACTABLE! -->
+```
+appendRev :: forall a. List a -> List a -> List a
+appendRev xs ys = append (rev xs) ys
+```
+Then, using the results of `(1)` and `(2)`, define a new version that no longer uses `append`.
+```haskell
+appendRev :: forall a. List a -> List a -> List a
+appendRev Nil ys    = undefined -- (1) goes here
+appendRev (x:xs) ys = undefined -- (2) goes here
+```
+
+1. Using β-reduction, calculate `appendRev [] ys`.
+2. In the same way as `(1)`, calculate `appendRev (x:xs) ys`.
+
+*Voila!* The following function, `fastRev`, should now be significantly faster than `rev`! **Magical**.
+```haskell
+fastRev :: forall a. List a -> List a
+fastRev xs = appendRev xs Nil
+```
+
+#### Defining Shapes and Shape Functions
+#### Recursion Principles
