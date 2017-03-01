@@ -262,11 +262,11 @@ sum (1:2:3:4:5:Nil)
 == 1 + 14
 == 15
 ```
-`15`! That's precisely the answer we were looking for! Mission accomplished.
+`15`! That's precisely the answer we were looking for! Mission complete.
 
 But wait! One might have noticed that this reduction is a bit long (especially for the simple act of summing the elements of a list). This verbosity is actually the reason for why many imperative languages avoid using recursion: it's very memory heavy. That is, the fact that computation *waits* (i.e., the `1` isn't added until the very end of the computation) reflects how a recursive program consumes a significant amount of memory when compared to a program written in an iterative style.
 
-However, we can alleviate the memory strain by making a small change. Instead of adding individual list elements to the *remaining* computation, we can use an *accumulator* and add elements to it instead (which is precisely how the Python program above uses the `sum` variable). This style of writing recursive programs is known as *accumulator passing style* (APS). We provide the alternative definition of a summing function, `sumAcc` and as well as its resulting reduction trace. Here, we also show how to define internal helper functions, `sumAcc'` (read as `sumAcc` *prime*), in PureScript using the `where` construct.
+However, we can alleviate the memory strain by making a small change. Instead of adding individual list elements to the *remaining* computation, we can use an *accumulator* and add elements to it instead (which is precisely how the Python program above uses the `sum` variable). This style of writing recursive programs is known as *accumulator passing style* (APS). We provide the alternative definition of a summing function, `sumAcc`, and as well as its resulting reduction trace. Here, we also show how to define internal helper functions, `sumAcc'` (read as `sumAcc` *prime*), in PureScript using the `where` construct.
 ```haskell
 sumAcc :: List Int -> Int
 sumAcc xs = sumAcc' 0 xs
@@ -284,12 +284,58 @@ sumAcc (1:2:3:4:5:Nil)
 == 15
 ```
 
-#### b. The Essence of Recursion -- Fold
+#### b. The Essence of Recursion -- Folding
+Let's take the idea of recursion one step further. Earlier, we stated that *every* recursive program follows a set pattern. To reiterate, we said that these programs must have a base case and define a computation to repeat. We can actually take advantage of this attribute of recursive programs and encapsulate it in a function that abstracts over the pattern, otherwise known as a *fold* function.
+
+In real life, when one *folds* something, for example a piece of clothing, one is essentially taking something "big" and making it *smaller*. This is precisely what a fold function is meant to do. That is, take a structure and "fold" it into something else. If one is familiar with JavaScript, one might have used a function called `reduce`. The `reduce` function in JavaScript is synonymous to a fold function defined for list-like structures. In reality, however, one can define a fold function for *everything*, which has prompted the creation of a myriad of different names for folding functions (e.g. eliminators and recursion principles).
+
+Let's continue with lists. Let's imagine what one might want to do with a list: one might combine its elements in some way (i.e., `sum`) or one might want to change the values contained in the list and return a new list. All of this is the essence of what a fold function over a list is meant to do. To make this clearer, let's think about what the appropriate type for this particular fold function, `foldList`, should be:
+
+1. This function should be able return any arbitrary value (i.e., it return an `Int`, like `sum` does or another `List` or *anything*).
+2. This function should be able to handle *any* list (i.e., `List Int`, `List Boolean`, `List (List Int)`, etc.).
+3. This function should encapsulate the *essence* of every possible recursively defined function over a list.
+
+Now, let's piece it together. From `(1)`, we know that this function should return an *any* type. This means we need a polymorphic return value. Let's call it `r`. From `(2)`, this function should be able to accept *any* list. This means we need another polymorphic variable that is parameterized under the `List` type; let's call it `List a`. So far, we have the following:
+```
+foldList :: forall a r. ... -> List a -> r
+```
+Hoorah. We're almost done. Our function now accepts *any* list and returns a value of an arbitrary type. 
+
+For `(3)`, we must acknowledge a few things. Firstly, for a function to capture the *essence* of recurring over a list, it itself must be recursive. This solely for the reason that lists are inherently recursive. We have already seen how a function recursively defined for a lists should look like. In this sense, we can start to imagine how `foldList` should be implemented. If we recall how `sum` and `sumAcc` were implemented, we know that we must provide the appropriate final return value (i.e., `0` and `acc`). Since we are defining `foldList` to be able to return an `r`, an arbitrary value, we naturally need an `r` to return in the event the given list is empty. Let's update our type definition to reflect this:
+```
+foldList :: forall a r. r -> ... -> List a -> r
+```
+Finally, we need to abstract the ability to build up from the final return value from the given elements of the provided list. Let's take `sum` as an example once more, and let's think about how the final return value of `0`/`acc` is built up on. In this case, we used `+`, which is of type `Int -> Int -> Int`, which dictated that the list passed to `sum` contain only elements of type `Int` (i.e., the element `x :: Int`) and that we eventually return `0`, which is also of type `Int`. In the case of `foldList`, however, we know that we are not just handling `Int`s anymore. For `foldList`, the provided `List` contains elements of type `a`, and we are returning elements of the type `r`. Thus, this *builder* is also a function, which has to be of type `a -> r -> r`.
+
+Thus, we now have the final type definition of `foldList`:
+```
+foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
+```
+Filling out the definition of this function becomes rather straightforward due to its polymorphic nature:
+```haskell
+foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
+foldList base build Nil    = base
+foldList base build (x:xs) = build x (foldList base build xs)
+```
+This fold function abstracts over the method of recursion used for `sum`, thus we can define `sumFold` as follows:
+```haskell
+sumFold :: List Int -> Int
+sumFold = foldList 0 (\x ans -> x + ans)
+```
+Alternatively, we can also use the same strategy to write `sumAcc` to alleviate memory strain of `foldList` by defining another fold function that immediately applies `build` at each step of the computation:
+```haskell
+foldList' :: forall a r. r -> (a -> r -> r) -> List a -> r
+foldList' acc build Nil    = acc
+foldList' acc build (x:xs) = foldList' (build x acc) build xs
+```
 
 ### Exercises:
+Since this is the first set of (real) exercises in this book, we take the time to provide some clear instructions on how to interact with them.
+
+Some of the examples below have a small test suite attached to them that determines whether the inputted code works as intended. Receiving a green check mark indicates that one has completed the exercise and passed all the included tests. Conversely, a red "x" indicates that the code does not pass all the necessary tests. One might also run into a few type errors along the way, which will result in neither the green check or the red "x" but instead in a series of red colored text that describes the type error. There is also a small interactable area that one can choose to manually write code snippets to test one's code.
+
 <!-- TODO:
 
-note on different types of errors and successes
 define shapes, write a function
 left and right folds
 
@@ -332,6 +378,77 @@ appendRev (x:xs) ys = undefined -- (2) goes here
 fastRev :: forall a. List a -> List a
 fastRev xs = appendRev xs Nil
 ```
-
-#### Defining Shapes and Shape Functions
 #### Recursion Principles
+Consider the definition of the simplest foldable data structure: the *Natural Number*!
+```haskell
+data Nat = Zero
+         | Add1 Nat
+
+-- How to print natural numbers a nice way :P
+instance Show Nat where
+  show Zero     = show (0 :: Integer)
+  show (Add1 n) = show $ 1 + (read $ show n)
+```
+
+A natural number is either `Zero` or the successor of (i.e., 1 value greater than) another natural number. Think *peano numbers*. With this, we have defined a data structure that includes all positive integers and as well as 0.
+
+Let's define some basic functions for Natural Numbers:
+```haskell
+-- add two natural numbers together.
+plus :: Nat -> Nat -> Nat
+plus Zero     y = y
+plus (Add1 x) y = Add1 (x `plus` y)
+
+-- multiply two natural numbers.
+times :: Nat -> Nat -> Nat
+times Zero     _ = Zero
+times (Add1 x) y = (x `times` y) `plus` y
+
+-- pow raises its first argument to the power of the second argument.
+pow :: Nat -> Nat -> Nat
+pow _ Zero     = Add1 Zero
+pow x (Add1 y) = (x `pow` y) `times` x
+```
+Consider the following definition of `foldNat`:
+```haskell
+foldNat :: forall a. a -> (a -> a) -> Nat -> a
+foldNat base build Zero     = base
+foldNat base build (Add1 n) = foldNat (build base) build n
+```
+**Hint**: You may find it useful to define a few natural numbers to avoid having to write out a long series of `Add1`s every time you want to test your functions. For example:
+
+```haskell
+two :: Nat
+two = Add1 (Add1 Zero)
+
+five :: Nat
+five = Add1 (Add1 (Add1 (Add1 (Add1 Zero))))
+```
+* Define `plusFold` that behaves like `plus` but uses `foldNat`.
+
+```haskell
+plusFold :: Nat -> Nat -> Nat
+plusFold m n = undefined
+```
+* Define `timesFold` that behaves like `times` but uses `foldNat`.
+
+```haskell
+timesFold :: Nat -> Nat -> Nat
+timesFold = undefined
+```
+* Define `powFold` that behaves like `pow` but uses `foldNat`.
+
+```haskell
+powFold :: Nat -> Nat -> Nat
+powFold = undefined
+```
+* **BONUS!!** Do the same for the following definition of `fact`.
+
+```haskell
+fact :: Nat -> Nat
+fact Zero     = Add1 Zero
+fact (Add1 n) = (Add1 n) `times` (fact n)
+
+factFold :: Nat -> Nat
+factFold = undefined
+```
