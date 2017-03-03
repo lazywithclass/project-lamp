@@ -6,7 +6,6 @@ $(function() {
   });
 });
 
-
 function pageCode() {
   let all = 'module Main where\n' +
       '\n' +
@@ -14,14 +13,16 @@ function pageCode() {
       'import Data.Foldable (fold)\n' +
       'import Data.Int\n' +
       'import Data.Tuple\n' +
+      'import Data.List\n' +
       'import Control.Monad.Eff.Console (logShow)\n' +
       'import TryPureScript\n' +
       'import Test.QuickCheck (class Arbitrary, quickCheck)\n' +
       'import Test.QuickCheck.Gen (chooseInt)\n' +
       'import Unsafe.Coerce (unsafeCoerce)\n' +
       '\n' +
-      'undefined :: forall a. a\n' +
-      'undefined = unsafeCoerce unit\n'
+      // 'undefined :: forall a. a\n' +
+      // 'undefined = unsafeCoerce unit\n' +
+      '\n' 
 
   return (snippet) => {
     if (snippet == null) snippet = '\n'
@@ -57,10 +58,12 @@ function getAllSources(collector) {
 function clearFeedbacks() {
   $('.js-ok').hide()
   $('.js-nok').hide()
+  $('.js-errors').html('')
   $('.js-results').html('')
 }
 
 function compile(sources, success, failure) {
+  clearFeedbacks()
   $.ajax({
     url: 'https://compile.purescript.org/try/compile',
     dataType: 'json',
@@ -78,4 +81,17 @@ function generateUuid() {
     d = Math.floor(d / 16);
     return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
   });
+}
+
+var consoleRef = window.console
+
+function overrideConsole(selector) {
+  window.console.log = function() {
+    var args = [].slice.call(arguments)
+    $(selector).html(args.join('\n'));
+  }
+}
+
+function restoreConsole() {
+  window.console = consoleRef
 }

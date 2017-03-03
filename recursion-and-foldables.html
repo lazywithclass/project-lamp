@@ -50,7 +50,7 @@ instance showNat :: Show Nat where
     show n = show $ toInt n</div>
           <img class="js-ok nat-definition" src="img/ok.png" />
           <img class="js-nok nat-definition" src="img/nok.png" />
-          <p class="js-results nat-definition"></p>
+          <p class="js-errors nat-definition"></p>
 
           <p>A natural number is either <code class="highlighter-rouge">Zero</code> or the successor of (i.e., 1 value greater than) another natural number. Think <em>peano numbers</em>. With this, we have defined a data structure that includes all positive integers and as well as 0.</p>
 
@@ -73,7 +73,7 @@ pow _ Zero     = Add1 Zero
 pow x (Add1 y) = (x `pow` y) `times` x </div>
           <img class="js-ok operations" src="img/ok.png" />
           <img class="js-nok operations" src="img/nok.png" />
-          <p class="js-results operations"></p>
+          <p class="js-errors operations"></p>
 
           <p>Cool, but nothing really out of the ordinary here. These are just your average, every-day run of the mill recursively defined functions, but we can make things a bit more interesting.</p>
 
@@ -92,7 +92,7 @@ foldNat base recur Zero     = base
 foldNat base recur (Add1 n) = recur $ foldNat base recur n</div>
           <img class="js-ok fold-nat" src="img/ok.png" />
           <img class="js-nok fold-nat" src="img/nok.png" />
-          <p class="js-results fold-nat"></p>
+          <p class="js-errors fold-nat"></p>
 
           <p>To further understand what exactly <code class="highlighter-rouge">foldNat</code> is meant to do, I’ve included some exercises! As an example, I’ve done the first of these.</p>
 
@@ -109,7 +109,7 @@ five :: Nat
 five = Add1 (Add1 (Add1 (Add1 (Add1 Zero))))</div>
           <img class="js-ok five" src="img/ok.png" />
           <img class="js-nok five" src="img/nok.png" />
-          <p class="js-results five"></p>
+          <p class="js-errors five"></p>
 
           <p><strong>Exercises</strong>:</p>
 
@@ -118,21 +118,21 @@ plusFold :: Nat -> Nat -> Nat
 plusFold m n = foldNat n Add1 m</div>
           <img class="js-ok plus-fold" src="img/ok.png" />
           <img class="js-nok plus-fold" src="img/nok.png" />
-          <p class="js-results plus-fold"></p>
+          <p class="js-errors plus-fold"></p>
 
           <div class="js-editor" data-identifier="times-fold" style="width: auto; height:80px;">-- 2. Define `timesFold` that behaves like `times` but uses `foldNat`
 timesFold :: Nat -> Nat -> Nat
 timesFold = undefined</div>
           <img class="js-ok times-fold" src="img/ok.png" />
           <img class="js-nok times-fold" src="img/nok.png" />
-          <p class="js-results times-fold"></p>
+          <p class="js-errors times-fold"></p>
 
           <div class="js-editor" data-identifier="pow-fold" style="width: auto; height:80px;"> -- 3. Define `powFold` that behaves like `pow` but uses `foldNat`
 powFold :: Nat -> Nat -> Nat
 powFold = undefined</div>
           <img class="js-ok pow-fold" src="img/ok.png" />
           <img class="js-nok pow-fold" src="img/nok.png" />
-          <p class="js-results pow-fold"></p>
+          <p class="js-errors pow-fold"></p>
 
           <div class="js-editor" data-identifier="fact-fold" style="width: auto; height: 150px;">-- BONUS!! This is rather difficult...
 fact :: Nat -> Nat
@@ -143,7 +143,7 @@ factFold :: Nat -> Nat
 factFold = undefined</div>
           <img class="js-ok fact-fold" src="img/ok.png" />
           <img class="js-nok fact-fold" src="img/nok.png" />
-          <p class="js-results fact-fold"></p>
+          <p class="js-errors fact-fold"></p>
 
         </div>
       </article>

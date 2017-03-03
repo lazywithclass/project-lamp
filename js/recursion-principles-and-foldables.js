@@ -18,68 +18,65 @@ function evaluate(editor) {
             "\n" +
             "powId :: Nat -> Boolean\n" +
             "powId n = n `powFold` (Add1 Zero) == n\n" +
-	    "\n" +
-	    "factProp :: Nat -> Boolean\n" +
-	    "factProp x | (toInt x) > 5 = true\n" +
-	    "factProp n = fact n == factFold n\n" +
+            "\n" +
+            "factProp :: Nat -> Boolean\n" +
+            "factProp x | (toInt x) > 5 = true\n" +
+            "factProp n = fact n == factFold n\n" +
             "\n")
   clearFeedbacks()
 
   compile(getAllSources(collector), function(res) {
     var identifier = $(editor.container).data('identifier');
     if (res.error) {
-      $('p.js-results.' + identifier).html(res.error.contents[0].message)
+      $('p.js-errors.' + identifier).html(res.error.contents[0].message)
       $('img.js-ok.' + identifier).hide()
       $('img.js-nok.' + identifier).show()
     } else {
       // TODO this could be done once
-      $.get('https://compile.purescript.org/try/bundle').done(function(bundle) {
-        var replaced = res.js.replace(/require\("[^"]*"\)/g, function(s) {
-          return"PS['" + s.substring(12, s.length - 2) + "']";
-        });
-        var wrapped =
-            [ 'window.module = {};',
-              '(function(module) {',
-              replaced,
-              'window.quickCheckUtil = Test_QuickCheck.quickCheck(Test_QuickCheck.testableFunction(arbNat)(Test_QuickCheck.testableBoolean));',
-              'window.plusId = plusId',
-              'window.timesId = timesId',
-              'window.powId = powId',
-	      'window.factProp = factProp',
-              '})(module);',
-              'module.exports.main && module.exports.main();',
-            ].join('\n');
-        var scripts = [bundle, wrapped].join("\n");
-        eval(scripts)
+      var replaced = res.js.replace(/require\("[^"]*"\)/g, function(s) {
+        return"PS['" + s.substring(12, s.length - 2) + "']";
+      });
+      var wrapped =
+          [ 'window.module = {};',
+            '(function(module) {',
+            replaced,
+            'window.quickCheckUtil = Test_QuickCheck.quickCheck(Test_QuickCheck.testableFunction(arbNat)(Test_QuickCheck.testableBoolean));',
+            'window.plusId = plusId',
+            'window.timesId = timesId',
+            'window.powId = powId',
+            'window.factProp = factProp',
+            '})(module);',
+            'module.exports.main && module.exports.main();',
+          ].join('\n');
+      eval(wrapped)
 
-        try {
-          window.quickCheckUtil(window.plusId)();
-          $('.js-ok.plus-fold').show();
-        } catch(e) {
-          $('.js-nok.plus-fold').show();
-        }
+      try {
+        window.quickCheckUtil(window.plusId)();
+        $('.js-ok.plus-fold').show();
+      } catch(e) {
+        $('.js-nok.plus-fold').show();
+      }
 
-        try {
-          window.quickCheckUtil(window.timesId)();
-          $('.js-ok.times-fold').show();
-        } catch(e) {
-          $('.js-nok.times-fold').show();
-        }
+      try {
+        window.quickCheckUtil(window.timesId)();
+        $('.js-ok.times-fold').show();
+      } catch(e) {
+        $('.js-nok.times-fold').show();
+      }
 
-        try {
-          window.quickCheckUtil(window.powId)();
-          $('.js-ok.pow-fold').show();
-        } catch(e) {
-          $('.js-nok.pow-fold').show();
-        }
+      try {
+        window.quickCheckUtil(window.powId)();
+        $('.js-ok.pow-fold').show();
+      } catch(e) {
+        $('.js-nok.pow-fold').show();
+      }
 
-	try {
-	    window.quickCheckUtil(window.factProp)();
-	    $('.js-ok.fact-fold').show();
-	} catch(e) {
-	    $('.js-nok.fact-fold').show();
-	}
-      })
+      try {
+        window.quickCheckUtil(window.factProp)();
+        $('.js-ok.fact-fold').show();
+      } catch(e) {
+        $('.js-nok.fact-fold').show();
+      }
     }
   })
 }
