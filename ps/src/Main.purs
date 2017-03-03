@@ -4,169 +4,114 @@ import Prelude
 import Data.List
 import Data.Tuple
 import Data.Maybe
+-- import Control.Monad.Aff.Console
 import Control.Monad.Eff.Console (logShow)
+import Control.Monad.Eff.Exception.Unsafe
 import Unsafe.Coerce (unsafeCoerce)
 import Test.QuickCheck (class Arbitrary, quickCheck)
 import Test.QuickCheck.Gen (chooseInt)
 
-data Lam = Var String
-         | Abs String Lam
-         | Lam Lam
-
-identity = Abs "x" (Var "x")           
-id = \x -> x
-
+-- Black magic shit
 undefined :: forall a. a
 undefined = unsafeCoerce unit
 
-quicksort :: forall a. (Ord a) => List a -> List a
-quicksort Nil    = Nil
-quicksort (x:xs) = xsLess <> (singleton x) <> xsMore
-  where xsLess = quicksort (filter (\a -> a <= x) xs)
-        xsMore = quicksort (filter (\a -> a > x) xs)
-                 
----| from here
-data Nat = Zero
-         | Add1 Nat
+error :: forall a. String -> a
+error = unsafeThrow
 
-two :: Nat
-two = Add1 $ Add1 Zero
+-- Interpreter stuff
+type Name = String
 
-five :: Nat
-five = Add1 $ Add1 $ Add1 two
+data Term = Num Number
+          | Sub Term Term
+          | Mul Term Term
+          | Equ Term Term
+          | If Term Term Term
+          | Var Name
+          | Let Name Term Term
+          | Lam Name Term
+          | App Term Term
 
----| interface 
-derive instance eqNat :: Eq Nat
+-- data Value = N { n :: Number }
+--            | B { b :: Boolean }
+--            | F { f :: (Value -> Value) }
+data Value = N Number
+           | B Boolean
+           | F (Value -> Value)
 
-instance showNat :: Show Nat where
-  show n = show $ toInt n
+instance showValue :: Show Value where
+  show (N x) = "N " <> show x-- .n
+  show (B x) = "B " <> show x-- .b
+  show (F _) = "Function"
+  
+type Env a = List { name :: Name, val :: a }
 
-instance arbNat :: Arbitrary Nat where
-  arbitrary = do
-    -- the second param of `chooseInt` needs to be relatively small
-    x <- chooseInt 0 (100)
-    pure $ fromInt x
+empty :: forall a. Env a
+empty = Nil
 
-toInt :: Nat -> Int
-toInt = foldNat 0 (\acc -> 1 + acc)
+extend :: forall a. Name -> a -> Env a -> Env a
+extend n v e = { name : n, val : v } : e
 
-fromInt :: Int -> Nat
-fromInt x | x <= 0 = Zero
-fromInt x = Add1 $ fromInt (x-1)
+lookUp :: forall a. Env a -> Name -> a
+lookUp Nil n = error $ "unbound variable: " <> show n
+lookUp (e:env) n | n == e.name = e.val
+                 | otherwise   = lookUp env n
 
--- add two natural numbers together.
-plus :: Nat -> Nat -> Nat
-plus Zero     y = y
-plus (Add1 x) y = Add1 (x `plus` y)
+-- An interpreter
+-- todo : fix the infer value thing
+valueOf :: Env Value -> Term -> Value
+valueOf e (Var x)     = lookUp e x
+valueOf _ (Num i)     = N i
+valueOf e (Sub x y)   = N (calcValue e (-) x y)
+valueOf e (Mul x y)   = N (calcValue e (*) x y)
+valueOf e (Equ x y)   = B (calcValue e (==) x y)
+valueOf e (Let x v b) = valueOf (extend x (valueOf e v) e) b
+valueOf e (If x y z)  = case valueOf e x of
+  -- everything else is true (like Scheme!)
+  B bool -> if bool then valueOf e y else valueOf e z
+  _      -> valueOf e y 
+valueOf e (Lam v b) = F (\a -> (valueOf (extend v a e) b))
+valueOf e (App l r) = case valueOf e l of
+  F foo -> foo (valueOf e r)
+  _     -> error "cannot apply non function values"
 
--- multiply two natural numbers.
-times :: Nat -> Nat -> Nat
-times Zero     _ = Zero
-times (Add1 x) y = (x `times` y) `plus` y
+on :: forall a b c. (b -> b -> c) -> (a -> b) -> a -> a -> c
+on op f = \x y -> f x `op` f y
 
--- pow raises its first argument to the power of the
--- second argument.
-pow :: Nat -> Nat -> Nat
-pow _ Zero     = Add1 Zero
-pow x (Add1 y) = (x `pow` y) `times` x 
-                 
----| exercises
-foldNat :: forall a. a -> (a -> a) -> Nat -> a
-foldNat base rec Zero     = base
-foldNat base rec (Add1 n) = foldNat (rec base) rec n
+calcValue :: forall a. Env Value -> (Number -> Number -> a) -> Term -> Term -> a
+calcValue e op = on op (\x -> case valueOf e x of
+                           N num -> num
+                           _     -> error "cannot peform arithmetic on non-numbers")
 
-plusFold :: Nat -> Nat -> Nat
-plusFold m n = foldNat n Add1 m
--- plus = undefined
+add :: Term -> Term -> Term
+add x y = Sub x (Sub (Num 0.0) y)
 
-timesFold :: Nat -> Nat -> Nat
-timesFold m n = foldNat Zero (\acc -> acc `plusFold` n) m
+t0 :: Term
+t0 = Num 5.0
 
-powFold :: Nat -> Nat -> Nat
-powFold m n = foldNat (Add1 Zero) (\acc -> acc `timesFold` m) n
+yComb :: Term
+yComb = (Lam "rec"
+         (App
+          (Lam "foo"
+           (App (Var "rec")
+            (Lam "a" (App (App (Var "foo") (Var "foo")) (Var "a")))))
+         (Lam "foo"
+           (App (Var "rec")
+            (Lam "a" (App (App (Var "foo") (Var "foo")) (Var "a")))))))
 
-fact :: Nat -> Nat
-fact Zero     = Add1 Zero
-fact (Add1 n) = (Add1 n) `times` (fact n)
-
-factFold :: Nat -> Nat
-factFold n = snd $ foldNat
-             (Tuple Zero (Add1 Zero))
-             (\t -> case t of
-                 Tuple nat r -> Tuple (Add1 n) (timesFold (Add1 nat) r))
-             n
-
----| properties
-factProp :: Nat -> Boolean
-factProp x | (toInt x) > 5 = true
-factProp n = fact n == factFold n
-
-plusId :: Nat -> Boolean
-plusId n = n `plusFold` Zero == n
-
-plusFoldIsPlus :: Nat -> Nat -> Boolean
-plusFoldIsPlus m n = m `plus` n == m `plusFold` n
-
-timesFoldIsTimes :: Nat -> Nat -> Boolean
-timesFoldIsTimes m n = m `times` n == m `timesFold` n
-
-powFoldIsPow :: Nat -> Nat -> Boolean
-powFoldIsPow m n = m `pow` n == m `powFold` n
-
-timesId :: Nat -> Boolean
-timesId n = n `timesFold` (Add1 Zero) == n
-
-powId :: Nat -> Boolean
-powId n = n `powFold` (Add1 Zero) == n
-
--- these are variables
-x = 5
-y = 6
-
--- this is a function
-foo1 = \x -> x
-
--- this is also a function
-foo2 f x = \y -> f x
-
--- this is how to apply functions
-app1 = foo1 x
-app2 = foo2 foo1 y x
-
--- fixed
-wrong :: Int -> Boolean -> Int
-wrong i b = i
-
-alsoWrong :: Int
-alsoWrong = wrong 42 false
-
-append :: forall a. List a -> List a -> List a
-append Nil ys    = ys
-append (x:xs) ys = x:(append xs ys)
-
-rev :: forall a. List a -> List a
-rev Nil    = Nil
-rev (x:xs) = append (rev xs) (singleton x)
-
-appendRev :: forall a. List a -> List a -> List a
-appendRev Nil ys    = ys
-appendRev (x:xs) ys = appendRev xs (x:ys)
-
-rev' :: forall a. List a -> List a
-rev' xs = appendRev xs Nil
+fact :: Term
+fact = App yComb factBase where
+  factBase = Lam "fact"
+             (Lam "num"
+              (If (Equ (Num 0.0) (Var "num"))
+               (Num 1.0)
+               (Mul (Var "num")
+                (App (Var "fact")
+                 (Sub (Var "num") (Num 1.0))))))
 
 main = do
-  logShow $ rev $ append (1:2:3:Nil) (4:5:6:Nil)
-  -- logShow $ "Slow:::"
-  -- logShow $ rev (1..10000)
-  logShow $ "Fast:::"
-  logShow $ rev' (1..10000)
-  -- logShow $ quicksort (5 : 4 : 10 : 2 : 0 : Nil)
-  -- quickCheck factProp
-  quickCheck plusId
-  -- quickCheck plusFoldIsPlus
-  -- quickCheck timesId
-  -- quickCheck timesFoldIsTimes
-  -- quickCheck powId
-          -- quickCheck powFoldIsPow -- bad idea
-          
+  logShow $ valueOf empty (App fact t0)
+  -- logShow $ valueOf empty t0
+  -- logShow $ valueOf empty (Mul t0 t0)
+  -- logShow $ valueOf empty (Equ t0 t0)
+  -- logShow $ valueOf empty (Equ t0 (Num 0.0))
+  
