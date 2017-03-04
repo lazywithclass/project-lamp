@@ -18,7 +18,8 @@ error :: forall a. String -> a
 error = unsafeThrow
 
 -- Interpreter stuff
-on :: forall a b c. (b -> b -> c) -> (a -> b) -> a -> a -> c
+on :: forall a b c. (b -> b -> c) -> (a -> b) ->
+      a -> a -> c
 on op f = \x y -> f x `op` f y
 
 type Name = String
@@ -34,19 +35,23 @@ data Term = Num Number
           | App Term Term
 
 instance showTerm :: Show Term where
-  show (Num n) = show n
-  show (Sub x y) = show x <> " - " <> show y
-  show (Mul x y) = show x <> " * " <> show y
-  show (Equ x y) = show x <> " == " <> show y
-  show (If x y z) = "If " <> show x <>
-                    " then " <> show y <>
-                    " else " <> show z
-  show (Var n) = show n
-  show (Let n x y) = "let " <> show n <>
-                     " = " <> show x <>
-                     " in " <> show y
-  show (Lam n x) = "(\\" <> show n <> " -> " <> show x <> ")"
-  show (App x y) = "(" <> show x <> " " <> show y <> ")"
+  show (Num n)    = show n
+  show (Sub x y)  = show x <> " - " <> show y
+  show (Mul x y)  = show x <> " * " <> show y
+  show (Equ x y)  = show x <> " == " <> show y
+  show (If x y z) =
+    "If " <> show x <>
+    " then " <> show y <>
+    " else " <> show z
+  show (Var n)     = show n
+  show (Let n x y) =
+    "let " <> show n <>
+    " = " <> show x <>
+    " in " <> show y
+  show (Lam n x)   =
+    "(\\" <> show n <> " -> " <> show x <> ")"
+  show (App x y)   =
+    "(" <> show x <> " " <> show y <> ")"
 
 data Env a = EmptyEnv
            | Ext { name :: Name, val :: a } (Env a)
@@ -61,7 +66,7 @@ empty :: forall a. Env a
 empty = EmptyEnv
 
 extend :: forall a. Name -> a -> Env a -> Env a
-extend n v e = Ext { name : n, val : v } e
+extend n v = Ext { name : n, val : v }
 
 lookUp :: forall a. Env a -> Name -> a
 lookUp EmptyEnv n = error $ "unbound variable: " <> show n
@@ -78,6 +83,14 @@ instance showValue :: Show Value where
   show (B x) = "B " <> show x-- .b
   show (F _) = "Function"
 
+valCase :: (Number -> Value) -> (Boolean -> Value) ->
+           ((Value -> Value) -> Value) -> Value -> Value  
+valCase nv bv fv v =
+  case v of
+    N num -> nv num
+    B boo -> bv boo
+    F foo -> fv foo
+
 -- todo : fix the infer value thing
 valueOf :: Env Value -> Term -> Value
 valueOf e (Var x)     = lookUp e x
@@ -87,24 +100,26 @@ valueOf e (Mul x y)   = N (calcValue e (*) x y)
 valueOf e (Equ x y)   = B (calcValue e (==) x y)
 valueOf e (Let x v b) = valueOf (extend x (valueOf e v) e) b
 valueOf e (If x y z)  = case valueOf e x of
-  -- everything else is true (like Scheme!)
-  B bool -> if bool then valueOf e y else valueOf e z
-  _      -> valueOf e y 
+  B boo -> if boo then valueOf e y else valueOf e z
+  _     -> valueOf e x -- every other value is truthy!
 valueOf e (Lam v b) = F (\a -> (valueOf (extend v a e) b))
-valueOf e (App l r) = case valueOf e l of
-  F foo -> foo (valueOf e r)
-  _     -> error "cannot apply non function values"
+valueOf e (App l r) =
+  case valueOf e l of
+    F foo -> foo $ valueOf e r
+    _     -> error $ "cannot apply non function value"
 
-calcValue :: forall a. Env Value -> (Number -> Number -> a) -> Term -> Term -> a
-calcValue e op = on op (\x -> case valueOf e x of
-                           N num -> num
-                           _     -> error "cannot peform arithmetic on non-numbers")
+calcValue :: forall a. Env Value -> (Number -> Number -> a) ->
+             Term -> Term -> a
+calcValue e op =
+  on op (\x -> case valueOf e x of
+            N num -> num
+            _     -> error "cannot peform arithmetic on non-numbers")
 
 -- defunctionalized interpreter
 newtype FuncD = FuncD {
-  var :: Name,
+  var  :: Name,
   body :: Term,
-  env :: Env ValueD
+  env  :: Env ValueD
   }
 
 data ValueD = ND Number
@@ -120,7 +135,8 @@ instance showValueD :: Show ValueD where
     "), with context " <> show clos.env
 
 applyFD :: FuncD -> ValueD -> ValueD
-applyFD (FuncD clos) rat = valueOfD (extend clos.var rat clos.env) clos.body
+applyFD (FuncD clos) rat =
+  valueOfD (extend clos.var rat clos.env) clos.body
 
 makeFD :: Name -> Term -> Env ValueD -> FuncD
 makeFD n t e = FuncD { var : n, body : t, env : e }
@@ -138,18 +154,20 @@ valueOfD e (If x y z)  = case valueOfD e x of
 valueOfD e (Lam v b) = FD (makeFD v b e)
 valueOfD e (App l r) = case valueOfD e l of
   FD foo -> applyFD foo (valueOfD e r)
-  _      -> error "cannot apply non function values"
+  _      -> error "cannot apply non function value"
 
-calcValueD :: forall a. Env ValueD -> (Number -> Number -> a) -> Term -> Term -> a
-calcValueD e op = on op (\x -> case valueOfD e x of
-                           ND num -> num
-                           _      -> error "cannot peform arithmetic on non-numbers")
+calcValueD :: forall a. Env ValueD -> (Number -> Number -> a) ->
+              Term -> Term -> a
+calcValueD e op =
+  on op (\x -> case valueOfD e x of
+            ND num -> num
+            _      -> error "cannot peform arithmetic on non-numbers")
 
 -- CPS interpreter
 newtype FuncC = FuncC {
-  var :: Name,
+  var  :: Name,
   body :: Term,
-  env :: Env ValueC
+  env  :: Env ValueC
   }
 
 data ValueC = NC Number
@@ -168,15 +186,17 @@ emptyK :: forall a. a -> a
 emptyK x = x
 
 applyFC :: FuncC -> ValueC -> (ValueC -> ValueC) -> ValueC
-applyFC (FuncC clos) rat return =
-  valueOfC (extend clos.var rat clos.env) clos.body return
+applyFC (FuncC clos) rat =
+  valueOfC (extend clos.var rat clos.env) clos.body
 
 makeFC :: Name -> Term -> Env ValueC -> FuncC
 makeFC n t e = FuncC { var : n, body : t, env : e }
 
 valueOfC :: Env ValueC -> Term -> (ValueC -> ValueC) -> ValueC
-valueOfC e (Var x) return    = return $ lookUp e x
-valueOfC _ (Num i) return    = return $ NC i
+valueOfC e (Var x) return    =
+  return $ lookUp e x
+valueOfC _ (Num i) return    =
+  return $ NC i
 valueOfC e (Sub x y) return  =
   calcValueC e (-) x y $ \r ->
   return $ NC r
@@ -192,28 +212,36 @@ valueOfC e (Let x v b) return =
 valueOfC e (If x y z) return =
   valueOfC e x $ \x' ->
   case x' of
-    BC bool -> if bool then valueOfC e y return else valueOfC e z return
+    BC bool ->
+      if bool
+      then valueOfC e y return
+      else valueOfC e z return
     _       -> valueOfC e y return
-valueOfC e (Lam v b) return = return $ FC (makeFC v b e)
+valueOfC e (Lam v b) return =
+  return $ FC (makeFC v b e)
 valueOfC e (App l r) return =
   valueOfC e l $ \l' ->
   case l' of
     FC foo ->
       valueOfC e r $ \r' ->
       applyFC foo r' return
-    _      -> error "cannot apply non function values"
+    _      -> error "cannot apply non function value"
+
+onC :: forall a b c r. (b -> b -> c) -> (a -> (b -> r) -> r) ->
+       a -> a -> (c -> r) -> r    
+onC op f x y return =
+  f x $ \x' ->
+  f y $ \y' ->
+  return $ x' `op` y'
 
 calcValueC :: forall a. Env ValueC -> (Number -> Number -> a) ->
               Term -> Term -> (a -> ValueC) -> ValueC
-calcValueC e op x y return =
-  valueOfC e x $ \x' ->
-  case x' of
-    NC xnum -> 
-      valueOfC e y $ \y' ->
-      case y' of
-        NC ynum -> return $ op xnum ynum
-        _      -> error "cannot peform arithmetic on non-numbers"
-    _      -> error "cannot peform arithmetic on non-numbers"
+calcValueC e op =
+  onC op (\a return ->
+           valueOfC e a $ \a' ->
+           case a' of
+             NC num -> return num
+             _      -> error "cannot peform arithmetic on non-numbers")
 
 -- Testing
 add :: Term -> Term -> Term
@@ -249,8 +277,5 @@ main = do
   logShow $ valueOfD empty (App fact t0)
   logShow $ valueOfC empty (Lam "x" (Lam "y" (Var "x"))) emptyK
   logShow $ valueOfC empty (App fact t0) emptyK
-  -- logShow $ valueOf empty t0
-  -- logShow $ valueOf empty (Mul t0 t0)
-  -- logShow $ valueOf empty (Equ t0 t0)
-  -- logShow $ valueOf empty (Equ t0 (Num 0.0))
+
   
