@@ -13,7 +13,7 @@ module Jekyll
         'style="width: auto; height:150px;">', # we can abstract this now
         @text,
         '</div>',
-        '<p><input class="js-console"></p>',
+        '<p><input class="js-console"><button class="js-go">REPL</button></p>',
         '<p>Your answer: <code class="js-results quicksort"></code>',
         '<code class="blinking-cursor">|</code></p>',
         '<p class="js-errors quicksort"></p>' # need to pull out id
