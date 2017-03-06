@@ -41,7 +41,7 @@ $(() => {
               '})(module);',
               'module.exports.main && module.exports.main();',
             ].join('\n');
-        overrideConsole('.js-results.quicksort')
+        overrideConsole('.js-results.quicksort') // this needs to be abstracted
         eval(wrapped)
         restoreConsole()
       }
