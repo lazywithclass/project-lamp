@@ -7,9 +7,16 @@ module Jekyll
     end
 
     def render(context)
-      "#{@text}"
+      '<div class="js-editor" data-identifier="quicksort" style="width: auto; height:150px;">' + @text + '</div>'
     end
   end
 end
 
 Liquid::Template.register_tag('render_time', Jekyll::RenderTimeTag)
+
+
+# '<input class="js-console"></input>' ,
+# '<button class="js-go">REPL</button>' ,
+# '<p class="js-errors quicksort"></p>' ,
+# '<p>Your answer: <code class="js-results quicksort"></code>' ,
+# '<code class="blinking-cursor">|</code></p>'

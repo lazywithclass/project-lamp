@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  {% include head.html %}
+
+  <header class="site-header" role="banner">
+    <div class="wrapper">
+      <a class="site-title" href="/">Your awesome title</a>
+
+    <nav class="site-nav">
+      <div class="trigger">
+        <a class="page-link" href="/about/">About</a>
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+<main class="page-content" aria-label="Content">
+  <div class="wrapper">
+
+  {{content}}
+
+  </div>
+
+</main>
+
+  {% if page.custom_js %}
+    {% for js_file in page.custom_js %}
+      <script src='/javascript/{{ js_file }}.js' type="text/javascript"></script>
+    {% endfor %}
+  {% endif %}
+
+</html>
