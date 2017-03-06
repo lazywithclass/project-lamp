@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: Chapter 1 - First Steps
 permalink: /chapter1/
 custom_js:
