@@ -14,9 +14,9 @@ module Jekyll
         @text,
         '</div>',
         '<p><input class="js-console"></p>',
-        '<p class="js-errors quicksort"></p>', # need to pull out quicksort
-        'Your answer: <code class="js-results quicksort"></code>',
-        '<code class="blinking-cursor">|</code>'
+        '<p>Your answer: <code class="js-results quicksort"></code>',
+        '<code class="blinking-cursor">|</code></p>',
+        '<p class="js-errors quicksort"></p>' # need to pull out id
       ].join('')
     end
   end
