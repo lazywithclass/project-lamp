@@ -7,7 +7,16 @@ module Jekyll
     end
 
     def render(context)
-      '<div class="js-editor" data-identifier="quicksort" style="width: auto; height:150px;">' + @text + '</div>'
+      [
+        '<div class="js-editor" data-identifier="quicksort" ',
+        'style="width: auto; height:150px;">',
+        @text,
+        '</div>',
+        '<p><input class="js-console"></p>',
+        '<p class="js-errors quicksort"></p>',
+        'Your answer: <code class="js-results quicksort"></code>',
+        '<code class="blinking-cursor">|</code>'
+      ].join('')
     end
   end
 end
