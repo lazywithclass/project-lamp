@@ -4,7 +4,19 @@ title: Project Lamp - Table of Contents
 permalink: /pl-contents/
 ---
 
-<script>
+<h1>
+FUCKING SQUIRREL!!!
+</h1>
+
+
+
+```
+`ps-with-repl tests::bool id-here`
+
+`ps-no-repl tests::bool id-here`
+```
+
+<script src="../ace.min.js">
 console.log("I'm JavaScript")
 console.log("You are in: " + window.location.pathname)
 </script>
@@ -15,3 +27,4 @@ console.log("You are in: " + window.location.pathname)
 * [3. From Continuations to Monads]()
 * [4. Tests are Fun]()
 * More *fun* ideas to come...
+
