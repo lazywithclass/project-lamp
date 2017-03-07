@@ -140,6 +140,7 @@ First, the definition of `IntList`:
 #data IntList = Empty | Push Int IntList
 %}
 Here, unlike `Point`, `IntList` requires two constructors: `Empty` and `Push`. These constructors represent the two ways in which to construct an `IntList` (i.e., an *empty* one or a way to add individually add `Int` elements to another `IntList`). This is a common way of defining *linked-list*-like structures in functional languages. For example, here a few `IntList`s:
+
 {% repl_only listexamples#emp :: IntList
 emp = Empty
 
@@ -149,6 +150,7 @@ ls1 = Push 2 emp
 ls2 :: IntList
 ls2 = Push 1 ls1
 %}
+
 Now, let's define `isEmpty`. With the power of pattern matching, writing this function becomes rather intuitive, since we can simply match over the possible values (as determined by the definition) of `IntList` to determine whether or not the given list is empty (i.e., `Empty`) or not. We don't need any special conditional expressions at all!
 ```haskell
 isEmpty :: IntList -> Boolean
