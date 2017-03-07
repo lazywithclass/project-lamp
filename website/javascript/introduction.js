@@ -23,13 +23,15 @@ function evaluate(editor) {
 
 $(() => {
   $('.js-go').click((event) => {
+    var $target = $(event.target)
     clearFeedbacks()
     let snippet = pageCode()
     getAllSources(snippet)
     snippet('main = logShow $ ' + $('.js-console').val())
     compile(snippet(), (result) => {
       if (result.error) {
-        $(event.target).next('.js-errors').html(result.error.contents[0].message)
+        $('.js-errors.' + $target.data('identifier'))
+          .html(result.error.contents[0].message)
       } else {
         var replaced = result.js.replace(/require\("[^"]*"\)/g, function(s) {
           return"PS['" + s.substring(12, s.length - 2) + "']";
@@ -41,7 +43,7 @@ $(() => {
               '})(module);',
               'module.exports.main && module.exports.main();',
             ].join('\n');
-        overrideConsole('.js-results.quicksort') // this needs to be abstracted
+        overrideConsole('.js-results.' + $target.data('identifier'))
         eval(wrapped)
         restoreConsole()
       }
