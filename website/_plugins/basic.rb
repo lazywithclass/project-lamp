@@ -19,7 +19,11 @@ module Jekyll
       @text   = text.split('#')
       @id     = @text[0]                ## : Liquid::Token
       @editor = @text[1...@text.length] ## : Array
+
       @height = count_lines(@editor[0]) * 25
+      if @height / 25 <= 5
+        @height += 15
+      end
     end
 
     def render(context)
