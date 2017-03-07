@@ -1,3 +1,9 @@
+/***
+
+Deprecated?
+
+***/
+
 function evaluate(editor) {
   let collector = pageCode()
 
