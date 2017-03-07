@@ -1,19 +1,24 @@
 module Jekyll
   class ReplOnly < Liquid::Tag
+    #### usage
+    # `basic` id#height#editor
 
     def initialize(tag_name, text, tokens)
-      # need to parse through text, so we can fix below
       super
       @text   = text.split('#')
-      @id     = @text[0]
-      @editor = @text[1...@text.length]
+      @id     = @text[0]                ## : Liquid::Token
+      @height = @text[1]                ## : Liquid::Token
+      @editor = @text[2...@text.length] ## : Array
     end
-
+    # lines * 25 = pixel height -- CAN'T MULTIPLY TOKENS!!
+    # this works for now I guess
     def render(context)
       [
         '<div class="js-editor" data-identifier="',
         @id,
-        '" style="width: auto; height:150px;">',
+        '" style="width: auto; height:',
+        @height,
+        'px;">', 
         @editor,
         '</div>',
         '<p><input class="js-console"><button class="js-go">REPL</button></p>',
