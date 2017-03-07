@@ -19,8 +19,7 @@ One might be thinking *"Calculus? I thought this was about programming?"* It mig
 The λ-calculus can be thought of as a simple programming language made up of three components: variables, functions, and function application. In many functional languages, the λ-calculus is used at the fundamental level (e.g. function representation and function application) but some of them use it for many other interesting things, which is a testament to how flexible the calculus truly is.
 
 How about a few examples?
-```haskell
--- these are variables
+{% repl_only lambda-examples#-- these are variables
 x = 5
 y = 6
 
@@ -33,7 +32,7 @@ foo2 f x y = f x
 -- function application
 app1 = foo1 x
 app2 = foo2 foo1 y x
-```
+%}
 In functional languages, one is free to assign values (i.e., Integers, Booleans, etc.) to variables. As is the case in PureScript and Haskell, variables (including function names) are required to begin with a *lower-case* letter. It is, however, impossible to *re-assign* new values to variables (i.e., we cannot re-associate `x` with another value once it has already been associated; it's always `5`).
 
 A key feature in functional languages is the appearance of functions as *first-class* values. This simply means that one can do with functions as one can do with normal values, as is the case with `foo1`, which itself is a variable associated with the value `(\x -> x)`, an example of an *anonymous function*. Having functions first-class allows one to pass functions as arguments to other functions (as is the case in `foo2`'s first argument, `f`). As we see later on in this chapter, this allows a considerable amount of flexibility in writing our code.
@@ -105,7 +104,7 @@ Alas, the benefit of having this constraint is that everything one chooses to wr
 
 But never fear! Type errors are here to help. It might seem difficult at first, and it might seem that one has to (painfully) wrestle with the type system to get *any* program working at all! However, the type system is actually here to help the programmer correctly specify what they want their program to do and know precisely what needs to happen to ammend something done incorrectly. One not need look any further than JavaScript to see how helpful type errors are (see **undefined errors**).
 
-Let's see a few examples! **Note:** these are wrong on purpose.
+Let's see a few examples! **Note:** these are wrong on purpose and are thus uneditable.
 ```haskell
 wrong :: Int -> Boolean -> Int
 wrong i b = b
@@ -137,13 +136,11 @@ That is, a `Point` is a type with one *type-constructor* (also called `Point`), 
 This is latest statement is due to the fact that type-constructors are considered a special kind of value. Unlike normal values (e.g. numbers), type-constructors can be *pattern matched*, which allows for an elegant way of defining functions over some given types. As an example, let's define a type for `IntList`, the type inhabited by lists of Integers, then define a function `isEmpty` that determines whether or not a given `IntList` contains no elements or not.
 
 First, the definition of `IntList`:
-```haskell
-data IntList = Empty
-             | Push Int IntList
-```
+{% basic listdef
+#data IntList = Empty | Push Int IntList
+%}
 Here, unlike `Point`, `IntList` requires two constructors: `Empty` and `Push`. These constructors represent the two ways in which to construct an `IntList` (i.e., an *empty* one or a way to add individually add `Int` elements to another `IntList`). This is a common way of defining *linked-list*-like structures in functional languages. For example, here a few `IntList`s:
-```haskell
-emp :: IntList
+{% repl_only listexamples#emp :: IntList
 emp = Empty
 
 ls1 :: IntList
@@ -151,7 +148,7 @@ ls1 = Push 2 emp
 
 ls2 :: IntList
 ls2 = Push 1 ls1
-```
+%}
 Now, let's define `isEmpty`. With the power of pattern matching, writing this function becomes rather intuitive, since we can simply match over the possible values (as determined by the definition) of `IntList` to determine whether or not the given list is empty (i.e., `Empty`) or not. We don't need any special conditional expressions at all!
 ```haskell
 isEmpty :: IntList -> Boolean
