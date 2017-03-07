@@ -85,7 +85,12 @@ h1, h2, h3, h4, h5, h6,
 p, blockquote, pre,
 ul, ol, dl, figure,
 .highlight {
-  margin-bottom: 15px; }
+  margin-bottom: 15px;
+}
+pre.highlight{
+  border-top: 1px solid gray;
+  border-bottom: 1px solid gray;
+}
 
 /**
  * Images
@@ -372,8 +377,6 @@ pre {
  */
 .highlight {
   background: #fff; }
-  .highlighter-rouge .highlight {
-    background: #eef; }
   .highlight .c {
     color: #998;
     font-style: italic; }
