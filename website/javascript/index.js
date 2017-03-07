@@ -72,8 +72,8 @@ function pageCode() {
       'import Test.QuickCheck.Gen (chooseInt)\n' +
       'import Unsafe.Coerce (unsafeCoerce)\n' +
       '\n' +
-      // 'undefined :: forall a. a\n' +
-      // 'undefined = unsafeCoerce unit\n' +
+      'undefined :: forall a. a\n' +
+      'undefined = unsafeCoerce unit\n' +
       '\n' 
 
   return (snippet) => {
