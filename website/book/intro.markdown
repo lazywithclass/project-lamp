@@ -7,7 +7,6 @@ custom_js:
 - mode-haskell.min
 - bundle
 - index
-- introduction
 ---
 
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.js"></script>
