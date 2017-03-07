@@ -136,12 +136,12 @@ That is, a `Point` is a type with one *type-constructor* (also called `Point`), 
 This is latest statement is due to the fact that type-constructors are considered a special kind of value. Unlike normal values (e.g. numbers), type-constructors can be *pattern matched*, which allows for an elegant way of defining functions over some given types. As an example, let's define a type for `IntList`, the type inhabited by lists of Integers, then define a function `isEmpty` that determines whether or not a given `IntList` contains no elements or not.
 
 First, the definition of `IntList`:
-{% basic listdef
-#data IntList = Empty | Push Int IntList
+{% basic listdef#data IntList = Empty
+             | Push Int IntList
 %}
 Here, unlike `Point`, `IntList` requires two constructors: `Empty` and `Push`. These constructors represent the two ways in which to construct an `IntList` (i.e., an *empty* one or a way to add individually add `Int` elements to another `IntList`). This is a common way of defining *linked-list*-like structures in functional languages. For example, here a few `IntList`s:
 
-{% repl_only listexamples#emp :: IntList
+{% basic listexamples#emp :: IntList
 emp = Empty
 
 ls1 :: IntList
@@ -152,11 +152,10 @@ ls2 = Push 1 ls1
 %}
 
 Now, let's define `isEmpty`. With the power of pattern matching, writing this function becomes rather intuitive, since we can simply match over the possible values (as determined by the definition) of `IntList` to determine whether or not the given list is empty (i.e., `Empty`) or not. We don't need any special conditional expressions at all!
-```haskell
-isEmpty :: IntList -> Boolean
+{% repl_only isempty#isEmpty :: IntList -> Boolean
 isEmpty Empty       = true
 isEmpty (Push i is) = false
-```
+%}
 Up until now, we haven't mentioned the pecuilarities of the `Boolean` type in PureScript. That is, the values of `true` and `false` *should* start with a capital letters (just as they do in Haskell) since they are actually both type-constructors for the `Boolean` type. In the case of PureScript, however, these two entitites appear lower-cased solely because this is how they appear in JavaScript.
 
 **Random Question**: What happens when we pattern match over a constructor that doesn't belong to the type that we are defining our function over? Say, for example, we add the following case to `isEmpty`:
@@ -182,13 +181,12 @@ In this simple example, it's easy to see where one incorrectly used the function
 The truth of the matter is that statically typed functional languages *still* allow one to define functions similar to `add1` and `sub1` but in a way that prevents the headache caused by the lack of types. This is where *polymorphism* comes in handy.
 
 In the introduction of this book, one might have seen the functions `id` and `const`. We include them now below with their respective types:
-```haskell
-id :: forall a. a -> a
+{% repl_only typed-calculus#id :: forall a. a -> a
 id x = x
 
 const :: forall a b. a -> b -> a
 const x y = x
-```
+%}
 These functions work for *every* possible input, as they represent the polymorphic functions of the λ-calculus known as the *identity* and *constant* combinators. They, in fact, *should* work for all possible inputs, which is precisely what their type declarations say. That is, `id` takes an `a` and returns an `a`, where `a` can be *any* type. In the case of `const`, `a` and `b` are also of *any* type that can be distinct from one another (i.e., they don't necessarily have to be). The distinction is made solely for the reason to specify that `const` returns an element of the same type as its first argument.
 
 **Note**: When it comes to polymorphic functions, there is less flexibility and variance in how to construct return values. For example, the only way that `id` and `const` can return an `a` is by returning their first argument. This is because, in general, it is imossible to return an element of an arbitrary type, unless one already has said element at their disposal.
@@ -201,8 +199,7 @@ forall a. (Ord a) => List a -> List a
 This means that `quicksort` works for *any* `List` type, given that the elements of said list contains elements of the `Ord` class, which are elements that can be compared using `==`, `<`, `<=`, `>` and `>=`. This relieves one from having to write `quicksort` that works for lists containing *non-sortable* elements. Using type classes to constrain function inputs also gives one access to the pre-defined functions of the given class!
 
 Thanks to polymorphism, we can now define a more *general* `List` type, as opposed to having to define a new `List` type for *every* other type we would want to put into lists. This type comes pre-defined in PureScript, but for the sake of clarity, we include a synonymous type:
-```haskell
-data AllList a = AllEmpty
+{% basic alllist#data AllList a = AllEmpty
                | AllPush a (AllList a)
 
 intList :: AllList Int
@@ -210,13 +207,12 @@ intList = AllPush 1 (AllPush 2 AllEmpty)
 
 boolList :: AllList Boolean
 boolList = AllPush true (AllPush false AllEmpty)
-```
+%}
 We can also now define a function similar to `isEmpty` that works for every possible iterations of `AllList`, regardless of the type of the elements the given `AllList` actually contains:
-```haskell
-isAllEmpty :: forall a. AllList a -> Boolean
+{% repl_only isallempty#isAllEmpty :: forall a. AllList a -> Boolean
 isAllEmpty AllEmpty       = true
 isAllEmpty (AllPush x xs) = false
-```
+%}
 
 ### 3. Recursion and its Principles
 We end this chapter with an overview of writing in a *recursive style*. The idea of recursion is not unique to functional languages, as recursion is central and fundamental to all computer programming. As we mentioned in the introduction of this book, there are stark differences in the way that imperative and functional programs are written, which can be seen quite clearly in how a functional language incorporates a certain style of recursion while an imperative languge incorporates and encourages recursion via recursive constructs like `for` and `while`, which are (basically) abset in *purely* functional programs.
@@ -242,11 +238,10 @@ In a functional language, we instead have the ability to write a recursive funct
 In the case of *list-like* structures, such as an array, we associate `(1)` and `(2)` with the cases that the given structure is *empty* and when its not. Thus, we know that writing a function to recur over a similar structure must *at least* cover both cases. In this case, we use pattern matching!
 
 Now, let's write a function that sums the elements of a list. For simplicity and to model the Python program above, we constrain the input of this function to lists of `Int`:
-```haskell
-sum :: List Int -> Int
+{% repl_only sum#sum :: List Int -> Int
 sum Nil    = 0            -- base case
 sum (x:xs) = x + (sum xs) -- repeated computation
-```
+%}
 Let's take the time to digest what exactly is going on in this function.
 
 In the first line, we define our function's *base-case*. This means that we determine that our recursive computation should end when the given list is empty, in which case we return the value `0`. Furthermore, this also follows the logic that the sum of an empty list of `Int` is `0`.
@@ -273,12 +268,11 @@ sum (1:2:3:4:5:Nil)
 But wait! One might have noticed that this reduction is a bit long (especially for the simple act of summing the elements of a list). This verbosity is actually the reason for why many imperative languages avoid using recursion: it's very memory heavy. That is, the fact that computation *waits* (i.e., the `1` isn't added until the very end of the computation) reflects how a recursive program consumes a significant amount of memory when compared to a program written in an iterative style.
 
 However, we can alleviate the memory strain by making a small change. Instead of adding individual list elements to the *remaining* computation, we can use an *accumulator* and add elements to it instead (which is precisely how the Python program above uses the `sum` variable). This style of writing recursive programs is known as *accumulator passing style* (APS). We provide the alternative definition of a summing function, `sumAcc`, and as well as its resulting reduction trace. Here, we also show how to define internal helper functions, `sumAcc'` (read as `sumAcc` *prime*), in PureScript using the `where` construct.
-```haskell
-sumAcc :: List Int -> Int
+{% repl_only sumacc#sumAcc :: List Int -> Int
 sumAcc xs = sumAcc' 0 xs
   where sumAcc' acc Nil    = acc
         sumAcc' acc (x:xs) = sumAcc' (acc + x) xs
-```
+%}
 ```
 sumAcc (1:2:3:4:5:Nil)
 == sumAcc' 0 (1:2:3:4:5:Nil)
@@ -318,22 +312,19 @@ Thus, we now have the final type definition of `foldList`:
 foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
 ```
 Filling out the definition of this function becomes rather straightforward due to its polymorphic nature:
-```haskell
-foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
+{% repl_only foldlist#foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
 foldList base build Nil    = base
 foldList base build (x:xs) = build x (foldList base build xs)
-```
+%}
 This fold function abstracts over the method of recursion used for `sum`, thus we can define `sumFold` as follows:
-```haskell
-sumFold :: List Int -> Int
+{% basic sumfold#sumFold :: List Int -> Int
 sumFold = foldList 0 (\x ans -> x + ans)
-```
+%}
 Alternatively, we can also use the same strategy to write `sumAcc` to alleviate memory strain of `foldList` by defining another fold function that immediately applies `build` at each step of the computation:
-```haskell
-foldList' :: forall a r. r -> (a -> r -> r) -> List a -> r
+{% repl_only foldlist2#foldList' :: forall a r. r -> (a -> r -> r) -> List a -> r
 foldList' acc build Nil    = acc
 foldList' acc build (x:xs) = foldList' (build x acc) build xs
-```
+%}
 
 ### Exercises:
 Since this is the first set of (real) exercises in this book, we take the time to provide some clear instructions on how to interact with them.
@@ -349,15 +340,14 @@ left and right folds
 #### Equational Reasoning
 Consider the following definitions of `append` and `rev`.
 
-```haskell
-append :: forall a. List a -> List a -> List a
+{% repl_only appendrev#append :: forall a. List a -> List a -> List a
 append Nil ys    = ys
 append (x:xs) ys = x:(append xs ys)
 
 rev :: forall a. List a -> List a
 rev Nil    = Nil
 rev (x:xs) = append (rev xs) (singleton x)
-```
+%}
 
 This implementation of `rev` (reverses a list) works quite well for smaller sized lists. However, on larger lists, its performance suffers quite a bit, due to the fact that it also calls another recursively defined function, `append`.
 
@@ -369,38 +359,36 @@ We'll start by using this preliminary definition of `appendRev`:
 appendRev :: forall a. List a -> List a -> List a
 appendRev xs ys = append (rev xs) ys
 ```
-Then, using the results of `(1)` and `(2)`, define a new version that no longer uses `append`.
-```haskell
-appendRev :: forall a. List a -> List a -> List a
-appendRev Nil ys    = undefined -- (1) goes here
-appendRev (x:xs) ys = undefined -- (2) goes here
-```
+Then, using the results of `(1)` and `(2)`, below,  define a new version that no longer uses `append`.
 
 1. Using β-reduction, calculate `appendRev [] ys`.
 2. In the same way as `(1)`, calculate `appendRev (x:xs) ys`.
 
+{% basic appendRev#appendRev :: forall a. List a -> List a -> List a
+appendRev Nil ys    = undefined -- (1) goes here
+appendRev (x:xs) ys = undefined -- (2) goes here
+%}
+
 *Voila!* The following function, `fastRev`, should now be significantly faster than `rev`! **Magical**.
-```haskell
-fastRev :: forall a. List a -> List a
+{% repl_only everything#fastRev :: forall a. List a -> List a
 fastRev xs = appendRev xs Nil
-```
+%}
 #### Recursion Principles
 Consider the definition of the simplest foldable data structure: the *Natural Number*!
-```haskell
-data Nat = Zero
-         | Add1 Nat
+{% basic_hidden nat#toInt :: Nat -> Int
+toInt n = toInt' n 0
+  where toInt' Zero ans     = ans
+        toInt' (Add1 n) ans = toInt' n (1 + ans)
 
--- How to print natural numbers a nice way :P
-instance Show Nat where
-  show Zero     = show (0 :: Integer)
-  show (Add1 n) = show $ 1 + (read $ show n)
-```
+instance showNat :: Show Nat where
+  show = show <<< toInt#data Nat = Zero
+         | Add1 Nat
+%}
 
 A natural number is either `Zero` or the successor of (i.e., 1 value greater than) another natural number. Think *peano numbers*. With this, we have defined a data structure that includes all positive integers and as well as 0.
 
 Let's define some basic functions for Natural Numbers:
-```haskell
--- add two natural numbers together.
+{% basic natfuns#-- add two natural numbers together.
 plus :: Nat -> Nat -> Nat
 plus Zero     y = y
 plus (Add1 x) y = Add1 (x `plus` y)
@@ -410,51 +398,46 @@ times :: Nat -> Nat -> Nat
 times Zero     _ = Zero
 times (Add1 x) y = (x `times` y) `plus` y
 
--- pow raises its first argument to the power of the second argument.
+-- pow raises its first argument to the
+-- power of the second argument.
 pow :: Nat -> Nat -> Nat
 pow _ Zero     = Add1 Zero
 pow x (Add1 y) = (x `pow` y) `times` x
-```
+%}
 Consider the following definition of `foldNat`:
-```haskell
-foldNat :: forall a. a -> (a -> a) -> Nat -> a
+{% repl_only foldnat#foldNat :: forall a. a -> (a -> a) -> Nat -> a
 foldNat base build Zero     = base
 foldNat base build (Add1 n) = foldNat (build base) build n
-```
+%}
 **Hint**: You may find it useful to define a few natural numbers to avoid having to write out a long series of `Add1`s every time you want to test your functions. For example:
 
-```haskell
-two :: Nat
+{% basic nats#two :: Nat
 two = Add1 (Add1 Zero)
 
 five :: Nat
 five = Add1 (Add1 (Add1 (Add1 (Add1 Zero))))
-```
+%}
 * Define `plusFold` that behaves like `plus` but uses `foldNat`.
 
-```haskell
-plusFold :: Nat -> Nat -> Nat
+{% basic plusfold#plusFold :: Nat -> Nat -> Nat
 plusFold m n = undefined
-```
+%}
 * Define `timesFold` that behaves like `times` but uses `foldNat`.
 
-```haskell
-timesFold :: Nat -> Nat -> Nat
+{% basic timesfold#timesFold :: Nat -> Nat -> Nat
 timesFold = undefined
-```
+%}
 * Define `powFold` that behaves like `pow` but uses `foldNat`.
 
-```haskell
-powFold :: Nat -> Nat -> Nat
+{% basic powfold#powFold :: Nat -> Nat -> Nat
 powFold = undefined
-```
+%}
 * **BONUS!!** Do the same for the following definition of `fact`.
 
-```haskell
-fact :: Nat -> Nat
+{% repl_only final#fact :: Nat -> Nat
 fact Zero     = Add1 Zero
 fact (Add1 n) = (Add1 n) `times` (fact n)
 
 factFold :: Nat -> Nat
 factFold = undefined
-```
+%}
