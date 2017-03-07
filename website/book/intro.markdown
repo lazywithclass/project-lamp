@@ -61,7 +61,8 @@ It should be mentioned, however, that, unlike a language like JavaScript, a pure
 In this book, we let **exercises** do the talking, a liberty that is present due in part to an advantage of certain functional languages. We hope that the reader will soon come to understand what we mean by this.
 
 {% 
-repl_only quicksort#-- 1. Take a look at the definition of quicksort
+repl_only quicksort
+#-- 1. Take a look at the definition of quicksort
 quicksort :: forall a. (Ord a) => List a -> List a
 quicksort Nil    = Nil
 quicksort (x:xs) = xsLess <> (singleton x) <> xsMore
