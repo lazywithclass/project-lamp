@@ -61,7 +61,7 @@ It should be mentioned, however, that, unlike a language like JavaScript, a pure
 In this book, we let **exercises** do the talking, a liberty that is present due in part to an advantage of certain functional languages. We hope that the reader will soon come to understand what we mean by this.
 
 {% 
-repl_only quicksort#150#-- 1. Take a look at the definition of quicksort
+repl_only quicksort#-- 1. Take a look at the definition of quicksort
 quicksort :: forall a. (Ord a) => List a -> List a
 quicksort Nil    = Nil
 quicksort (x:xs) = xsLess <> (singleton x) <> xsMore
@@ -72,7 +72,7 @@ quicksort (x:xs) = xsLess <> (singleton x) <> xsMore
 What do you suppose the first line of the code (the *type declaration*) says about this function? What kinds of `lists` does this function work with? It might come as a surprise to hear, but one should not have to worry about understanding the code to answer this question.
 
 {%
-basic type-declaration#110#-- 2. Write the type declaration for the following:
+basic type-declaration#-- 2. Write the type declaration for the following:
 id x = x
 
 const x y = x
