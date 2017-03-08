@@ -136,7 +136,9 @@ That is, a `Point` is a type with one *type-constructor* (also called `Point`), 
 This is latest statement is due to the fact that type-constructors are considered a special kind of value. Unlike normal values (e.g. numbers), type-constructors can be *pattern matched*, which allows for an elegant way of defining functions over some given types. As an example, let's define a type for `IntList`, the type inhabited by lists of Integers, then define a function `isEmpty` that determines whether or not a given `IntList` contains no elements or not.
 
 First, the definition of `IntList`:
-{% basic listdef#data IntList = Empty
+{% basic_hidden listdef#instance showIntList :: Show IntList where
+  show Empty       = "Empty"
+  show (Push i is) = "(Push " <> show i <> " " <> show is <> ")"#data IntList = Empty
              | Push Int IntList
 %}
 Here, unlike `Point`, `IntList` requires two constructors: `Empty` and `Push`. These constructors represent the two ways in which to construct an `IntList` (i.e., an *empty* one or a way to add individually add `Int` elements to another `IntList`). This is a common way of defining *linked-list*-like structures in functional languages. For example, here a few `IntList`s:
@@ -198,20 +200,21 @@ forall a. (Ord a) => List a -> List a
 ```
 This means that `quicksort` works for *any* `List` type, given that the elements of said list contains elements of the `Ord` class, which are elements that can be compared using `==`, `<`, `<=`, `>` and `>=`. This relieves one from having to write `quicksort` that works for lists containing *non-sortable* elements. Using type classes to constrain function inputs also gives one access to the pre-defined functions of the given class!
 
-Thanks to polymorphism, we can now define a more *general* `List` type, as opposed to having to define a new `List` type for *every* other type we would want to put into lists. This type comes pre-defined in PureScript, but for the sake of clarity, we include a synonymous type:
-{% basic alllist#data AllList a = AllEmpty
-               | AllPush a (AllList a)
+Thanks to polymorphism, we can now define a more *general* `List` type, as opposed to having to define a new `List` type for *every* other type we would want to put into lists. This type comes pre-defined in PureScript and is a type parameterized over all types `a`:
+```haskell
+data List a = Nil
+            | Cons a (List a)
+```
+We can also now define a function similar to `isEmpty` that works for every possible list, regardless of the type of the elements the given list actually contains. Here, we are also using `:` as sugar for `Cons`. We are also free to use this syntax inside of pattern matches cases:
+{% repl_only isallempty#intList :: List Int
+intList = (1:2:Nil)
 
-intList :: AllList Int
-intList = AllPush 1 (AllPush 2 AllEmpty)
+boolList :: List Boolean
+boolList = (true:false:Nil)
 
-boolList :: AllList Boolean
-boolList = AllPush true (AllPush false AllEmpty)
-%}
-We can also now define a function similar to `isEmpty` that works for every possible iterations of `AllList`, regardless of the type of the elements the given `AllList` actually contains:
-{% repl_only isallempty#isAllEmpty :: forall a. AllList a -> Boolean
-isAllEmpty AllEmpty       = true
-isAllEmpty (AllPush x xs) = false
+empty :: forall a. List a -> Boolean
+empty Nil    = true
+empty (x:xs) = false
 %}
 
 ### 3. Recursion and its Principles
@@ -340,7 +343,7 @@ define shapes, write a function
 left and right folds
 
 -->
-#### Equational Reasoning
+#### i. Equational Reasoning
 Consider the following definitions of `append` and `rev`.
 
 {% repl_only appendrev#append :: forall a. List a -> List a -> List a
@@ -376,7 +379,7 @@ appendRev (x:xs) ys = undefined -- (2) goes here
 {% repl_only everything#fastRev :: forall a. List a -> List a
 fastRev xs = appendRev xs Nil
 %}
-#### Recursion Principles
+#### ii. Recursion Principles
 Consider the definition of the simplest foldable data structure: the *Natural Number*!
 {% basic_hidden nat#toInt :: Nat -> Int
 toInt n = toInt' n 0
