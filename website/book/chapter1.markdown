@@ -368,7 +368,17 @@ toInt n = toInt' n 0
         toInt' (Add1 n) ans = toInt' n (1 + ans)
 
 instance showNat :: Show Nat where
-  show = show <<< toInt#data Nat = Zero
+  show n = show $ toInt n
+
+derive instance eqNat :: Eq Nat
+
+instance arbNat :: Arbitrary Nat where
+  arbitrary = do
+    x <- chooseInt 0 (100)
+    pure $ fromInt x
+
+fromInt x | x <= 0 = Zero
+fromInt x = Add1 $ fromInt (x-1)#data Nat = Zero
          | Add1 Nat%}
 
 A natural number is either `Zero` or the successor of (i.e., 1 value greater than) another natural number. Think *peano numbers*. With this, we have defined a data structure that includes all positive integers and as well as 0.
@@ -394,17 +404,21 @@ foldNat base build Zero     = base
 foldNat base build (Add1 n) = foldNat (build base) build n%}
 **Hint**: You may find it useful to define a few natural numbers to avoid having to write out a long series of `Add1`s every time you want to test your functions. For example:
 
-{% basic nats#two = Add1 (Add1 Zero)
+{% basic nats#two  = Add1 (Add1 Zero)
 five = Add1 (Add1 (Add1 (Add1 (Add1 Zero))))%}
 * Define `plusFold` that behaves like `plus` but uses `foldNat`.
 
-{% basic plusfold#plusFold :: Nat -> Nat -> Nat
+{% testable plusId#plusId :: Nat -> Boolean
+plusId n = n `plusFold` Zero == n
+#plusFold :: Nat -> Nat -> Nat
 plusFold m n = undefined%}
 * Define `timesFold` that behaves like `times` but uses `foldNat`.
 
-{% basic timesfold#timesFold :: Nat -> Nat -> Nat
-timesFold = undefined%}
-* **BONUS!!** Do the same for `fact`.
+{% testable timesId#timesId :: Nat -> Boolean
+timesId n = n `timesFold` (Add1 Zero) == n#timesFold :: Nat -> Nat -> Nat
+timesFold m n = undefined%}
+* *BONUS!!* Do the same for `fact`. **HINT**: `Tuple`.
 
-{% repl_only fact#factFold :: Nat -> Nat
-factFold = undefined%}
+{% repl_only factProp#factFold :: Nat -> Nat
+factFold n = undefined%}
+**NOTE**: Due to the recursive nature of factorial and natural numbers, we can only test a limited number of inputs (`#FeelsBadMan`). We recommend manually testing this function.
