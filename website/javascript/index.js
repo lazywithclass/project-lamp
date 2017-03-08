@@ -27,13 +27,42 @@ $(() => {
   $('.js-editor').each(function() {
     createEditor(this)
   });
+    
+  $('.js-test').click((event) => {
+    var $target = $(event.target), identifier = $target.data('identifier')
+    clearFeedbacks()
+    let snippet = pageCode()
+    getAllSources(snippet)
+    snippet(`main = quickCheck $ ${identifier}`)
+    // snippet('main = logShow $ ' + $(`.js-console.${identifier}`).val()) // here
+    compile(snippet(), (result) => {
+      if (result.erorr) {
+        $(`.js-errors.${identifier}`)
+          .html(result.error.contents[0].message)
+      } else {
+        var replaced = result.js.replace(/require\("[^"]*"\)/g, function(s) {
+          return"PS['" + s.substring(12, s.length - 2) + "']";
+        });
+        var wrapped =
+            [ 'window.module = {};',
+              '(function(module) {',
+              replaced,
+              '})(module);',
+              'module.exports.main && module.exports.main();',
+            ].join('\n');
+        overrideConsole(`.js-results.${identifier}`)
+        eval(wrapped)
+        restoreConsole()
+      }
+    })
+  })
 
   $('.js-go').click((event) => {
     var $target = $(event.target), identifier = $target.data('identifier')
     clearFeedbacks()
     let snippet = pageCode()
     getAllSources(snippet)
-    snippet('main = logShow $ ' + $(`.js-console.${identifier}`).val())
+    snippet('main = logShow $ ' + $(`.js-console.${identifier}`).val()) // here
     compile(snippet(), (result) => {
       if (result.error) {
         $(`.js-errors.${identifier}`)
@@ -66,6 +95,7 @@ function pageCode() {
       'import Data.Int\n' +
       'import Data.Tuple\n' +
       'import Data.List\n' +
+      'import Data.Maybe\n' +
       'import Control.Monad.Eff.Console (logShow)\n' +
       'import TryPureScript\n' +
       'import Test.QuickCheck (class Arbitrary, quickCheck)\n' +
