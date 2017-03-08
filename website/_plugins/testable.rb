@@ -1,8 +1,8 @@
 module Jekyll
   class Testable < Liquid::Tag
     #### usage
-    # `testable` id#props#editor
-
+    ###### `testable` id#props#editor
+    # `testable` propname#props#editor
     def count_lines(s)
       ans = 0
       len = s.length
@@ -39,9 +39,23 @@ module Jekyll
         '</div>',
         # js-console needs to have an identifier
         # + small loader
-        '<p><input class="js-console"><button class="js-go">REPL</button></p>', 
-        '<p>Your answer: <code class="js-results quicksort"></code>',
-        '<code class="blinking-cursor">|</code></p>',
+        '<p><input class="js-console ',
+        @id,
+        '"><button class="js-go" data-identifier="',
+        @id,
+        '">EVAL</button> ',
+        ###### 
+        '<button class="js-test" data-identifier="',
+        @id,
+        '">TEST</button> ',
+        '<code>></code> ',
+        ######
+        '<code class="js-results ',
+        @id,
+        '"></code></p>',
+        # '<p><input class="js-console"><button class="js-go">REPL</button></p>', 
+        # '<p>Your answer: <code class="js-results quicksort"></code>',
+        # '<code class="blinking-cursor">|</code></p>',
         '<p class="js-errors ',
         @id,
         '"></p>',
