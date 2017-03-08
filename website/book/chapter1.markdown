@@ -374,7 +374,7 @@ instance showNat :: Show Nat where
 A natural number is either `Zero` or the successor of (i.e., 1 value greater than) another natural number. Think *peano numbers*. With this, we have defined a data structure that includes all positive integers and as well as 0.
 
 Let's define some basic functions for Natural Numbers:
-{% basic natfuns#-- add two natural numbers together.
+{% repl_only natfuns#-- add two natural numbers together.
 plus :: Nat -> Nat -> Nat
 plus Zero     y = y
 plus (Add1 x) y = Add1 (x `plus` y)
@@ -389,7 +389,7 @@ fact :: Nat -> Nat
 fact Zero     = Add1 Zero
 fact (Add1 n) = (Add1 n) `times` (fact n)%}
 Consider the following definition of `foldNat`:
-{% repl_only foldnat#foldNat :: forall a. a -> (a -> a) -> Nat -> a
+{% basic foldnat#foldNat :: forall a. a -> (a -> a) -> Nat -> a
 foldNat base build Zero     = base
 foldNat base build (Add1 n) = foldNat (build base) build n%}
 **Hint**: You may find it useful to define a few natural numbers to avoid having to write out a long series of `Add1`s every time you want to test your functions. For example:
