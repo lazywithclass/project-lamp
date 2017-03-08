@@ -21,7 +21,7 @@ module Jekyll
       @editor = @text[1...@text.length] ## : Array[Liquid::Token]
       @height = count_lines(@editor[0]) * 25
       if @height / 25 <= 5
-        @height += 15
+        @height += 20
       end
 
     end
