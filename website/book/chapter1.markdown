@@ -312,18 +312,21 @@ Thus, we now have the final type definition of `foldList`:
 foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
 ```
 Filling out the definition of this function becomes rather straightforward due to its polymorphic nature:
-{% repl_only foldlist#foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
+{% basic foldlist#foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
 foldList base build Nil    = base
 foldList base build (x:xs) = build x (foldList base build xs)
 %}
-This fold function abstracts over the method of recursion used for `sum`, thus we can define `sumFold` as follows:
-{% basic sumfold#sumFold :: List Int -> Int
-sumFold = foldList 0 (\x ans -> x + ans)
-%}
 Alternatively, we can also use the same strategy to write `sumAcc` to alleviate memory strain of `foldList` by defining another fold function that immediately applies `build` at each step of the computation:
-{% repl_only foldlist2#foldList' :: forall a r. r -> (a -> r -> r) -> List a -> r
+{% basic foldlist2#foldList' :: forall a r. r -> (a -> r -> r) -> List a -> r
 foldList' acc build Nil    = acc
 foldList' acc build (x:xs) = foldList' (build x acc) build xs
+%}
+
+Theses fold functions abstract over the method of recursion used for functions like `sum`, thus we can define `sumFold` as follows:
+{% repl_only sumfold#sumFold :: List Int -> Int
+sumFold = foldList 0 (\x ans -> x + ans)
+-- this is a comment: try switching the definition!
+-- sumFold = foldList' 0 (\x ans -> x + ans) 
 %}
 
 ### Exercises:
