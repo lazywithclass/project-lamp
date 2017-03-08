@@ -10,4 +10,4 @@ If you feel like suggesting changes, new content or even contributing your own c
 
 ## Current Contributers:
 * Carl J. Factora ([GitHub](https://github.com/IvantheTricourne), [Twitter](https://twitter.com/CJF_setBaNG))
-* Alberto Zaccagani ([GitHub](https://github.com/lazywithclass))
+* Alberto Zaccagni ([GitHub](https://github.com/lazywithclass))
