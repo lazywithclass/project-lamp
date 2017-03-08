@@ -31,8 +31,7 @@ foo2 f x y = f x
 
 -- function application
 app1 = foo1 x
-app2 = foo2 foo1 y x
-%}
+app2 = foo2 foo1 y x%}
 In functional languages, one is free to assign values (i.e., Integers, Booleans, etc.) to variables. As is the case in PureScript and Haskell, variables (including function names) are required to begin with a *lower-case* letter. It is, however, impossible to *re-assign* new values to variables (i.e., we cannot re-associate `x` with another value once it has already been associated; it's always `5`).
 
 A key feature in functional languages is the appearance of functions as *first-class* values. This simply means that one can do with functions as one can do with normal values, as is the case with `foo1`, which itself is a variable associated with the value `(\x -> x)`, an example of an *anonymous function*. Having functions first-class allows one to pass functions as arguments to other functions (as is the case in `foo2`'s first argument, `f`). As we see later on in this chapter, this allows a considerable amount of flexibility in writing our code.
@@ -139,8 +138,7 @@ First, the definition of `IntList`:
 {% basic_hidden listdef#instance showIntList :: Show IntList where
   show Empty       = "Empty"
   show (Push i is) = "(Push " <> show i <> " " <> show is <> ")"#data IntList = Empty
-             | Push Int IntList
-%}
+             | Push Int IntList%}
 Here, unlike `Point`, `IntList` requires two constructors: `Empty` and `Push`. These constructors represent the two ways in which to construct an `IntList` (i.e., an *empty* one or a way to add individually add `Int` elements to another `IntList`). This is a common way of defining *linked-list*-like structures in functional languages. For example, here a few `IntList`s:
 
 {% basic listexamples#emp :: IntList
@@ -150,14 +148,12 @@ ls1 :: IntList
 ls1 = Push 2 emp
 
 ls2 :: IntList
-ls2 = Push 1 ls1
-%}
+ls2 = Push 1 ls1%}
 
 Now, let's define `isEmpty`. With the power of pattern matching, writing this function becomes rather intuitive, since we can simply match over the possible values (as determined by the definition) of `IntList` to determine whether or not the given list is empty (i.e., `Empty`) or not. We don't need any special conditional expressions at all!
 {% repl_only isempty#isEmpty :: IntList -> Boolean
 isEmpty Empty       = true
-isEmpty (Push i is) = false
-%}
+isEmpty (Push i is) = false%}
 Up until now, we haven't mentioned the pecuilarities of the `Boolean` type in PureScript. That is, the values of `true` and `false` *should* start with a capital letters (just as they do in Haskell) since they are actually both type-constructors for the `Boolean` type. In the case of PureScript, however, these two entitites appear lower-cased solely because this is how they appear in JavaScript.
 
 **Random Question**: What happens when we pattern match over a constructor that doesn't belong to the type that we are defining our function over? Say, for example, we add the following case to `isEmpty`:
@@ -187,8 +183,7 @@ In the introduction of this book, one might have seen the functions `id` and `co
 id x = x
 
 const :: forall a b. a -> b -> a
-const x y = x
-%}
+const x y = x%}
 These functions work for *every* possible input, as they represent the polymorphic functions of the λ-calculus known as the *identity* and *constant* combinators. They, in fact, *should* work for all possible inputs, which is precisely what their type declarations say. That is, `id` takes an `a` and returns an `a`, where `a` can be *any* type. In the case of `const`, `a` and `b` are also of *any* type that can be distinct from one another (i.e., they don't necessarily have to be). The distinction is made solely for the reason to specify that `const` returns an element of the same type as its first argument.
 
 **Note**: When it comes to polymorphic functions, there is less flexibility and variance in how to construct return values. For example, the only way that `id` and `const` can return an `a` is by returning their first argument. This is because, in general, it is imossible to return an element of an arbitrary type, unless one already has said element at their disposal.
@@ -214,8 +209,7 @@ boolList = (true:false:Nil)
 
 empty :: forall a. List a -> Boolean
 empty Nil    = true
-empty (x:xs) = false
-%}
+empty (x:xs) = false%}
 
 ### 3. Recursion and its Principles
 We end this chapter with an overview of writing in a *recursive style*. The idea of recursion is not unique to functional languages, as recursion is central and fundamental to all computer programming. As we mentioned in the introduction of this book, there are stark differences in the way that imperative and functional programs are written, which can be seen quite clearly in how a functional language incorporates a certain style of recursion while an imperative languge incorporates and encourages recursion via recursive constructs like `for` and `while`, which are (basically) abset in *purely* functional programs.
@@ -243,8 +237,7 @@ In the case of *list-like* structures, such as an array, we associate `(1)` and 
 Now, let's write a function that sums the elements of a list. For simplicity and to model the Python program above, we constrain the input of this function to lists of `Int`:
 {% repl_only sum#sum :: List Int -> Int
 sum Nil    = 0            -- base case
-sum (x:xs) = x + (sum xs) -- repeated computation
-%}
+sum (x:xs) = x + (sum xs) -- repeated computation%}
 Let's take the time to digest what exactly is going on in this function.
 
 In the first line, we define our function's *base-case*. This means that we determine that our recursive computation should end when the given list is empty, in which case we return the value `0`. Furthermore, this also follows the logic that the sum of an empty list of `Int` is `0`.
@@ -274,8 +267,7 @@ However, we can alleviate the memory strain by making a small change. Instead of
 {% repl_only sumacc#sumAcc :: List Int -> Int
 sumAcc xs = sumAcc' 0 xs
   where sumAcc' acc Nil    = acc
-        sumAcc' acc (x:xs) = sumAcc' (acc + x) xs
-%}
+        sumAcc' acc (x:xs) = sumAcc' (acc + x) xs%}
 ```
 sumAcc (1:2:3:4:5:Nil)
 == sumAcc' 0 (1:2:3:4:5:Nil)
@@ -317,32 +309,23 @@ foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
 Filling out the definition of this function becomes rather straightforward due to its polymorphic nature:
 {% basic foldlist#foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
 foldList base build Nil    = base
-foldList base build (x:xs) = build x (foldList base build xs)
-%}
+foldList base build (x:xs) = build x (foldList base build xs)%}
 Alternatively, we can also use the same strategy to write `sumAcc` to alleviate memory strain of `foldList` by defining another fold function that immediately applies `build` at each step of the computation:
 {% basic foldlist2#foldList' :: forall a r. r -> (a -> r -> r) -> List a -> r
 foldList' acc build Nil    = acc
-foldList' acc build (x:xs) = foldList' (build x acc) build xs
-%}
+foldList' acc build (x:xs) = foldList' (build x acc) build xs%}
 
 Theses fold functions abstract over the method of recursion used for functions like `sum`, thus we can define `sumFold` as follows:
 {% repl_only sumfold#sumFold :: List Int -> Int
 sumFold = foldList 0 (\x ans -> x + ans)
 -- this is a comment: try switching the definition!
--- sumFold = foldList' 0 (\x ans -> x + ans) 
-%}
+-- sumFold = foldList' 0 (\x ans -> x + ans) %}
 
 ### Exercises:
 Since this is the first set of (real) exercises in this book, we take the time to provide some clear instructions on how to interact with them.
 
 Some of the examples below have a small test suite attached to them that determines whether the inputted code works as intended. Receiving a green check mark indicates that one has completed the exercise and passed all the included tests. Conversely, a red "x" indicates that the code does not pass all the necessary tests. One might also run into a few type errors along the way, which will result in neither the green check or the red "x" but instead in a series of red colored text that describes the type error. There is also a small interactable area that one can choose to manually write code snippets to test one's code.
 
-<!-- TODO:
-
-define shapes, write a function
-left and right folds
-
--->
 #### i. Equational Reasoning
 Consider the following definitions of `append` and `rev`.
 
@@ -352,8 +335,7 @@ append (x:xs) ys = x:(append xs ys)
 
 rev :: forall a. List a -> List a
 rev Nil    = Nil
-rev (x:xs) = append (rev xs) (singleton x)
-%}
+rev (x:xs) = append (rev xs) (singleton x)%}
 
 This implementation of `rev` (reverses a list) works quite well for smaller sized lists. However, on larger lists, its performance suffers quite a bit, due to the fact that it also calls another recursively defined function, `append`.
 
@@ -372,13 +354,11 @@ Then, using the results of `(1)` and `(2)`, below,  define a new version that no
 
 {% basic appendRev#appendRev :: forall a. List a -> List a -> List a
 appendRev Nil ys    = undefined -- (1) goes here
-appendRev (x:xs) ys = undefined -- (2) goes here
-%}
+appendRev (x:xs) ys = undefined -- (2) goes here%}
 
 *Voila!* The following function, `fastRev`, should now be significantly faster than `rev`! **Magical**.
 {% repl_only everything#fastRev :: forall a. List a -> List a
-fastRev xs = appendRev xs Nil
-%}
+fastRev xs = appendRev xs Nil%}
 #### ii. Recursion Principles
 Consider the definition of the simplest foldable data structure: the *Natural Number*!
 {% basic_hidden nat#toInt :: Nat -> Int
@@ -388,8 +368,7 @@ toInt n = toInt' n 0
 
 instance showNat :: Show Nat where
   show = show <<< toInt#data Nat = Zero
-         | Add1 Nat
-%}
+         | Add1 Nat%}
 
 A natural number is either `Zero` or the successor of (i.e., 1 value greater than) another natural number. Think *peano numbers*. With this, we have defined a data structure that includes all positive integers and as well as 0.
 
@@ -404,46 +383,27 @@ times :: Nat -> Nat -> Nat
 times Zero     _ = Zero
 times (Add1 x) y = (x `times` y) `plus` y
 
--- pow raises its first argument to the
--- power of the second argument.
-pow :: Nat -> Nat -> Nat
-pow _ Zero     = Add1 Zero
-pow x (Add1 y) = (x `pow` y) `times` x
-%}
+-- factorial
+fact :: Nat -> Nat
+fact Zero     = Add1 Zero
+fact (Add1 n) = (Add1 n) `times` (fact n)%}
 Consider the following definition of `foldNat`:
 {% repl_only foldnat#foldNat :: forall a. a -> (a -> a) -> Nat -> a
 foldNat base build Zero     = base
-foldNat base build (Add1 n) = foldNat (build base) build n
-%}
+foldNat base build (Add1 n) = foldNat (build base) build n%}
 **Hint**: You may find it useful to define a few natural numbers to avoid having to write out a long series of `Add1`s every time you want to test your functions. For example:
 
-{% basic nats#two :: Nat
-two = Add1 (Add1 Zero)
-
-five :: Nat
-five = Add1 (Add1 (Add1 (Add1 (Add1 Zero))))
-%}
+{% basic nats#two = Add1 (Add1 Zero)
+five = Add1 (Add1 (Add1 (Add1 (Add1 Zero))))%}
 * Define `plusFold` that behaves like `plus` but uses `foldNat`.
 
 {% basic plusfold#plusFold :: Nat -> Nat -> Nat
-plusFold m n = undefined
-%}
+plusFold m n = undefined%}
 * Define `timesFold` that behaves like `times` but uses `foldNat`.
 
 {% basic timesfold#timesFold :: Nat -> Nat -> Nat
-timesFold = undefined
-%}
-* Define `powFold` that behaves like `pow` but uses `foldNat`.
+timesFold = undefined%}
+* **BONUS!!** Do the same for `fact`.
 
-{% basic powfold#powFold :: Nat -> Nat -> Nat
-powFold = undefined
-%}
-* **BONUS!!** Do the same for the following definition of `fact`.
-
-{% repl_only final#fact :: Nat -> Nat
-fact Zero     = Add1 Zero
-fact (Add1 n) = (Add1 n) `times` (fact n)
-
-factFold :: Nat -> Nat
-factFold = undefined
-%}
+{% repl_only fact#factFold :: Nat -> Nat
+factFold = undefined%}
