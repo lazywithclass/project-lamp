@@ -2,8 +2,13 @@
 layout: default
 title: Chapter 2 - Little Languages w/ Style
 permalink: /chapter2/
+custom_js:
+- ace.min
+- mode-haskell.min
+- bundle
+- index
 ---
-In the previous chapter, we introduced the foundation of FP languages, a few key concepts on types and the basis of writing recursive programs in a functional language. In this chapter, we take a little bit of all three and introduce the simplicity of writing *interpreters* in a functional language.
+In the previous chapter, we introduced the foundation of functional languages, a few key concepts on types, and the basis of writing recursive programs in a functional language. In this chapter, we take a little bit of all three and introduce the simplicity of writing *interpreters* in a functional language.
 
 ### 1. The Big Picture
 
