@@ -44,16 +44,16 @@ Believe it or not, despite its simplicity, the λ-calculus is a *Turing-complete
 For our purposes, we opt to provide extensions to the calculus with more familiar language expressions to perform more complex expressions, namely *conditional branches*, some arithmetic expressions and numbers. This, however, is not necessary since the language can already encode the extensions we include (albeit in a significantly more complex way). This brings us to the data representation of the λ-calculus that we will use for the remainder of this chapter:
 {% basic_hidden calculus#instance showTerm :: Show Term where
   show (Num n)    = show n
-  show (Sub x y)  = show x <> " - " <> show y
-  show (Mul x y)  = show x <> " * " <> show y
-  show (Equ x y)  = show x <> " == " <> show y
+  show (Sub x y)  = "(" <> show x <> " - " <> show y <> ")"
+  show (Mul x y)  = "(" <> show x <> " * " <> show y <> ")"
+  show (Equ x y)  = "(" <> show x <> " == " <> show y <> ")"
   show (If x y z) =
     "If " <> show x <>
     " then " <> show y <>
     " else " <> show z
-  show (Var n)     = show n
+  show (Var n)     = n
   show (Lam n x)   =
-    "(\\" <> show n <> " -> " <> show x <> ")"
+    "(λ(" <> n <> ") . " <> show x <> ")"
   show (App x y)   =
     "(" <> show x <> " " <> show y <> ")"#-- `type` is used for aliasing names
 type Name = String
