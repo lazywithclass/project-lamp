@@ -25,7 +25,12 @@ $(() => {
   console.log('oh hai!')
 
   $('.js-editor').each(function() {
-    createEditor(this)
+    let editor = createEditor(this)
+    editor.getSession().on('change', (e) => {
+      let newLines = editor.getValue().split('\n').length
+      $(this).css('height', (23 * (newLines - (newLines / 23))).toString())
+      editor.resize()
+    });
   });
 
   $('.js-test').click((event) => {
@@ -34,7 +39,6 @@ $(() => {
     let snippet = pageCode()
     getAllSources(snippet)
     snippet(`main = quickCheck $ ${identifier}`)
-    // snippet('main = logShow $ ' + $(`.js-console.${identifier}`).val()) // here
     compile(snippet(), (result) => {
       if (result.erorr) {
         $(`.js-errors.${identifier}`)
