@@ -41,7 +41,7 @@ module Jekyll
         @id,
         # '">eval</button></p>',
         '">EVAL</button> ',
-        '<code>></code> ',
+        '<br /><code>></code> ',
         # '<p><code class="blinking-cursor">></code> ',
         '<code class="js-results ',
         @id,

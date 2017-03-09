@@ -48,7 +48,7 @@ module Jekyll
         '<button class="js-test" data-identifier="',
         @id,
         '">TEST</button> ',
-        '<code>></code> ',
+        '<br /><code>></code> ',
         ######
         '<code class="js-results ',
         @id,
