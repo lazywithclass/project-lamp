@@ -463,6 +463,9 @@ pre {
 .js-errors {
   white-space: pre-wrap;
   color: red;
+  font-family: monospace;
+  /* border-bottom: 1px solid gray; */
+  padding-bottom: 15px;
 }
 
 .js-results {
