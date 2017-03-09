@@ -44,7 +44,7 @@ Try writing `(partial y x)` in the REPL above.
 
 Another thing to note about functions is that they have what is known as a *local namespace*. This means that names defined within functions (i.e, the names of their parameters) are different from those defined outside of the function. In the examples above, we have defined `x` and `y` to hold the value `5` and `6`, respectively. We then later pass `x` to `foo1`, which makes reference to a certain *other* `x`. It might come as a surprise that `(partial y x)` evaluates to `6` and not `5`! The reason for this is that the `x` and `y` defined outside of `foo1` and `foo2` are said to be defined *globally*, while the `x` and `y` in the definition of `foo1` and `foo2` are defined *locally* and are thus different from one another.
 
-It might help to see how `(partial y x)` comes up with its answer. In the λ-calculus, this is done through what is known as a *β-reduction*. The name *reduction* seems a bit off-putting, since each step in a *β-reduction* is essentially an expansion of expressions into their respective values. This is where a language like PureScript becomes rather helpful, since the act of reducing is simply taking an expression from the left hand side of an `=` sign to the value on the right. Aside from this, with every function application, a function's namespace grows, where the names of its parameters are associated with the values passed in their place. We represent this *namespace growth* as the expression contained within curly braces, `{}`, placed beside the given function being applied. Once all of a function's parameters have been applied, all occurances of names inside of its body (i.e., the expression after the `->`) are replaced with the respective values mapped inside of its namespace. This continues until there is no other possible reduction. In a later chapter, we show how to simulate this step-by-step calculation inside of PureScript itself!
+It might help to see how `(partial y x)` comes up with its answer. In the λ-calculus, this is done through what is known as a *β-reduction*. The name *reduction* seems a bit off-putting, since each step in a *β-reduction* is essentially an expansion of expressions into their respective values. This is where a language like PureScript becomes rather helpful, since the act of reducing is simply taking an expression from the left hand side of an `=` sign to the value on the right. Aside from this, with every function application, a function's namespace grows, where the names of its parameters are associated with the values passed in their place. We represent this *namespace growth* as the expression contained within curly braces, `{}`, placed beside the given function being applied. Once all of a function's parameters have been applied, all occurances of names inside of its body (i.e., the expression after the `->`) are replaced with the respective values mapped inside of its namespace. This continues until there is no other possible reduction. In a [later chapter]({{ site.baseurl }}/chapter2), we show how to simulate this step-by-step calculation inside of PureScript itself!
 
 Let's see a β-reduction in action:
 ```
@@ -102,16 +102,16 @@ Defining our own types require that we adhere to a simple set of rules. To make 
 ```haskell
 data Point = Point Number Number
 ```
-A `Point` is a type with one *type-constructor* (also called `Point`), which is a function that takes two `Number`s, representing the `x` and `y` values of a given point on an x-y axis. Here, unlike variables, the names of types and type constructors must start with an *upper-case* letter. As a liberty to the programmer, PureScript allows type-constructors to use the same name as the type that they are defined in when the given type is designed with only *one* constructor (this practice is called constructor *punning*). In the event that a type requires more than one constructor, each constructor requires a unique name to properly differentiate it from the other ways of constructing values of the type.
+A `Point` is a type with one *term-constructor* (also called `Point`), which is a function that takes two `Number`s, representing the `x` and `y` values of a given point on an x-y axis. Here, unlike variables, the names of types and type constructors must start with an *upper-case* letter. As a liberty to the programmer, PureScript allows term-constructors to use the same name as the type that they are defined in when the given type is designed with only *one* constructor (this practice is called constructor *punning*). In the event that a type requires more than one constructor, each constructor requires a unique name to properly differentiate it from the other ways of constructing values of the type.
 
-Type-constructors are considered a special kind of value, and unlike normal, atomic values (e.g. `Number`s), type-constructors are values that can be *pattern matched*, which allows for an elegant way of defining functions over certain types. As an example, let's define the type `IntList`, the type inhabited by lists of `Int`, then define a function `isEmpty` which determines whether or not a given `IntList` contains no elements or not.
+Term-constructors are considered a special kind of value, and unlike normal, atomic values (e.g. `Number`s), term-constructors are values that can be *pattern matched*, which allows for an elegant way of defining functions over certain types. As an example, let's define the type `IntList`, the type inhabited by lists of `Int`, then define a function `isEmpty` which determines whether or not a given `IntList` contains no elements or not.
 
 First, the definition of `IntList`:
 {% basic_hidden listdef#instance showIntList :: Show IntList where
   show Empty       = "Empty"
   show (Push i is) = "(Push " <> show i <> " " <> show is <> ")"#data IntList = Empty
              | Push Int IntList%}
-Here, unlike `Point`, `IntList` is defined by two type-constructors: `Empty` and `Push`. These constructors represent the two ways to construct an `IntList`: an *empty* one or extending another `IntList` with another `Int`. This is a common way of defining *linked-list* structures. For example, here a few `IntList`s:
+Here, unlike `Point`, `IntList` is defined by two term-constructors: `Empty` and `Push`. These constructors represent the two ways to construct an `IntList`: an *empty* one or extending another `IntList` with another `Int`. This is a common way of defining *linked-list* structures. For example, here a few `IntList`s:
 
 {% basic listexamples#emp :: IntList
 emp = Empty
@@ -127,7 +127,7 @@ Now, let's define `isEmpty`. With the power of pattern matching, writing this fu
 isEmpty Empty       = true
 isEmpty (Push i is) = false%}
 
-**Aside**: PureScript treats `Boolean`s a bit differently than Haskell. The values `true` and `false` *should* start with a capital letters (just as they do in Haskell) since they are both type-constructors of the `Boolean` type. In the case of PureScript, however, these two entitites appear lower-cased solely because this is how they appear in JavaScript.
+**Aside**: PureScript treats `Boolean`s a bit differently than Haskell. The values `true` and `false` *should* start with a capital letters (just as they do in Haskell) since they are both term-constructors of the `Boolean` type. In the case of PureScript, however, these two entitites appear lower-cased solely because this is how they appear in JavaScript.
 
 **Random Question**: What happens when we pattern match over a constructor that doesn't belong to the type that we are defining our function over? Say, for example, we add the following case to `isEmpty`:
 ```haskell
@@ -297,7 +297,7 @@ sumFold = foldList 0 (\x ans -> x + ans)
 -- this is a comment: try switching the definition!
 -- sumFold = foldList' 0 (\x ans -> x + ans) %}
 
-### Exercises:
+## Exercises:
 Since this is the first set of (real) exercises in this book, we take the time to provide some clear instructions on how to interact with them.
 
 Some of the examples below have a small test suite attached to them that determines whether the inputted code works as intended. Receiving a green check mark indicates that one has completed the exercise and passed all the included tests. Conversely, a red "x" indicates that the code does not pass all the necessary tests. One might also run into a few type errors along the way, which will result in neither the green check or the red "x" but instead in a series of red colored text that describes the type error. There is also a small interactable area that one can choose to manually write code snippets to test one's code.
