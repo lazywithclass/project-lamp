@@ -96,12 +96,12 @@ To put it simply, an *environment* is a mapping of `Name`s to `Value`s. When we 
     show' EmptyEnv Nil    = "{}"
     show' EmptyEnv _      = "}"
     show' (Ext e env) Nil =
-      "{" <> e.name <> ": " <>
-      show e.val <>
+      "{" <> e.name <> ": (" <>
+      show e.val <> ")" <>
       show' env (0:Nil)
     show' (Ext e env) x =
-      ", " <> e.name <> ": " <>
-      show e.val <>
+      ", " <> e.name <> ": (" <>
+      show e.val <> ")" <>
       show' env x#data Env a = EmptyEnv
            | Ext { name :: Name, val :: a } (Env a)%}
 
