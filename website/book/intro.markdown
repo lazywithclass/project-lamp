@@ -69,7 +69,7 @@ quicksort (x:xs) = xsLess <> (singleton x) <> xsMore
     where xsLess = quicksort (filter (\a -> a <= x) xs)
           xsMore = quicksort (filter (\a -> a > x) xs)%}
           
-To execute editable PureScript code click into the snippet you want executed and press `CTRL + ENTER`, or on OS X press `CMD + ENTER`.
+To execute editable PureScript code, click into the snippet you want executed and press `CTRL + ENTER`, or on OS X press `CMD + ENTER`.
 
 What do you suppose the first line of the code (the *type declaration*) says about this function? `quicksort` is a function that, well, sorts `List`s *quickly*. What sorts of `List`s does this function work with? It might come as a surprise to hear, but one should not have to worry about understanding *how* the code sorts `List`s to answer this question. We, however, have included a `REPL` to interact with the code above (and for *all* other PureScript code on this page). Try a few things and see what happens!
 
