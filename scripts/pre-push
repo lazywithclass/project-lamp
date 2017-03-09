@@ -1,0 +1,1 @@
+aws s3 cp website/_site s3://project-lamp.org --recursive 
