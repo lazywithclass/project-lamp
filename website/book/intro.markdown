@@ -32,7 +32,7 @@ On the other hand, while functional languages don't (quite) offer the seamless a
 3. Recur on both of the new lists to sort them.
 4. Place the `pivot` element in between the newly sorted lists (e.g. result = `ls1` + `pivot` + `ls2`).
 
-The above pseudocode, more or less, reflects how to implement `quicksort` in an imperative language. To do this, the programmer would need to design the individual *steps* in such a way that the computer executing the code peforms each of the above points in the correct manner. Now, let's see how to implement `quicksort` in Haskell, a purely, functional programming language:
+The above pseudocode, more or less, reflects how to implement `quicksort` in an imperative language. To do this, the programmer would need to design the individual *steps* in such a way that the computer executing the code peforms each of the above points in the correct manner. Now, let's see how to implement `quicksort` in Haskell, a pure, functional programming language:
 ```haskell
 quicksort :: (Ord a) => [a] -> [a]
 quicksort []     = []
