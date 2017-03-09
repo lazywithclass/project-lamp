@@ -3,13 +3,12 @@ layout: page
 title: "Introduction - Starting Out, Nice and Easy"
 permalink: /introduction/
 custom_js:
+- jquery.min
 - ace.min
 - mode-haskell.min
 - bundle
 - index
 ---
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.js"></script>
 
 ### 1. Functional Programming?
 Functional Programming (FP) can be thought of simply as a method of writing computer programs where *specification* takes precedence over direct manipulation of computer memory and executable *instructions*. This is a bit of an oversimplification, as FP offers quite a bit more benefits that simply allowing a programmer to program *differently*.

@@ -3,12 +3,12 @@ layout: page
 title: Chapter 1 - First Steps
 permalink: /chapter1/
 custom_js:
+- jquery.min
 - ace.min
 - mode-haskell.min
 - bundle
 - index
 ---
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.js"></script>
 
 In this chapter, we introduce the foundation of all functional languages and their related concepts, we talk about types and their relationship with functional languages, and end with a discussion on the different ways that one can write basic functional programs.
 

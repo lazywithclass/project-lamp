@@ -27,7 +27,7 @@ $(() => {
   $('.js-editor').each(function() {
     createEditor(this)
   });
-    
+
   $('.js-test').click((event) => {
     var $target = $(event.target), identifier = $target.data('identifier')
     clearFeedbacks()
@@ -84,8 +84,14 @@ $(() => {
       }
     })
   })
-})
 
+  $('.js-console').keypress(function (e) {
+    var key = e.which
+    if (key == 13) {
+      $(e.target).next('.js-go').click()
+    }
+  })
+})
 
 function pageCode() {
   let all = 'module Main where\n' +
@@ -156,17 +162,7 @@ function compile(sources, success, failure) {
   })
 }
 
-function generateUuid() { 
-  var d = new Date().getTime();
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    var r = (d + Math.random() * 16) % 16 | 0;
-    d = Math.floor(d / 16);
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-  });
-}
-
 var consoleRef = window.console
-
 function overrideConsole(selector) {
   window.console.log = function() {
     var args = [].slice.call(arguments)
