@@ -85,4 +85,4 @@ basic type-declaration#id x = x
 
 const x y = x%}
 
-**HINT**: Look back at exercise 1. What does the variable `a` mean inside of the type declaration for `quicksort`?
+**HINT**: Look back at exercise 1. What does the variable `a` mean in the type declaration for `quicksort`?
