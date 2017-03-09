@@ -59,23 +59,30 @@ It should be mentioned, however, that, unlike a language like JavaScript, a pure
 
 In this book, we let **exercises** do the talking, a liberty that is present due in part to an advantage of certain functional languages. We hope that the reader will soon come to understand what we mean by this.
 
+## Exercises
+
+#### i. Quicksort in PureScript
 {% 
 repl_only quicksort
-#-- 1. Take a look at the definition of quicksort
-quicksort :: forall a. (Ord a) => List a -> List a
+#quicksort :: forall a. (Ord a) => List a -> List a
 quicksort Nil    = Nil
 quicksort (x:xs) = xsLess <> (singleton x) <> xsMore
     where xsLess = quicksort (filter (\a -> a <= x) xs)
-          xsMore = quicksort (filter (\a -> a > x) xs)
-%}
+          xsMore = quicksort (filter (\a -> a > x) xs)%}
 
-What do you suppose the first line of the code (the *type declaration*) says about this function? What kinds of `lists` does this function work with? It might come as a surprise to hear, but one should not have to worry about understanding the code to answer this question.
+What do you suppose the first line of the code (the *type declaration*) says about this function? `quicksort` is a function that, well, sorts `List`s *quickly*. What sorts of `List`s does this function work with? It might come as a surprise to hear, but one should not have to worry about understanding *how* the code sorts `List`s to answer this question. We, however, have included a `REPL` to interact with the code above (and for *all* other PureScript code on this page). Try a few things and see what happens!
 
+How about:
+```haskell
+quicksort (89:81:13:71:52:Nil)
+```
+
+#### ii. Dabble in Types
+
+What do you think the *types* are of the following function definitions?
 {%
-basic type-declaration#-- 2. Write the type declaration for the following:
-id x = x
+basic type-declaration#id x = x
 
-const x y = x
-%}
+const x y = x%}
 
 **HINT**: Look back at exercise 1. What does the variable `a` mean inside of the type declaration for `quicksort`?
