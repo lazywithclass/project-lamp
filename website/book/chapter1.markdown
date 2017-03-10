@@ -384,12 +384,12 @@ fromInt x = Add1 $ fromInt (x-1)#data Nat = Zero
 A natural number is either `Zero` or the successor of (i.e., 1 value greater than) another natural number. Think *peano numbers*. With this, we have defined a data structure that includes all positive integers and as well as 0.
 
 Let's define some basic functions for Natural Numbers:
-{% repl_only natfuns#-- add two natural numbers together.
+{% repl_only natfuns#-- add two natural numbers
 plus :: Nat -> Nat -> Nat
 plus Zero     y = y
 plus (Add1 x) y = Add1 (x `plus` y)
 
--- multiply two natural numbers.
+-- multiply two natural numbers
 times :: Nat -> Nat -> Nat
 times Zero     _ = Zero
 times (Add1 x) y = (x `times` y) `plus` y
@@ -421,4 +421,7 @@ timesFold m n = undefined%}
 
 {% repl_only factProp#factFold :: Nat -> Nat
 factFold n = undefined%}
-**NOTE**: Due to the recursive nature of factorial and natural numbers, we can only test a limited number of inputs (`#FeelsBadMan`). We recommend manually testing this function.
+**NOTE**: Due to the recursive nature of factorial and natural numbers, we can only test a limited number of inputs (`#FeelsBadMan`). We recommend manually testing this function. You should be able to calculate:
+```haskell
+factFold five
+```
