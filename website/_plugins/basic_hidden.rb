@@ -20,25 +20,9 @@ module Jekyll
       @id     = @text[0]                ## : Liquid::Token
       @props  = @text[1...2]
       @editor = @text[2...@text.length] ## : Array[Liquid::Token]
-      @lines  = count_lines(@editor[0])
-      @height = 25 * (@lines - (@lines / 11))
-      # @height = count_lines(@editor[0]) * 25
-      if @height / 25 <= 5
-        @height += 20
-      end
+      @lines  = count_lines(@editor[0]) + 1
+      @height = @lines * 21.33333396911621
     end
-
-    # def initialize(tag_name, text, tokens)
-    #   super
-    #   @text   = text.split('#')
-    #   @id     = @text[0]                ## : Liquid::Token
-    #   @editor = @text[1...@text.length] ## : Array
-
-    #   @height = count_lines(@editor[0]) * 25
-    #   if @height / 25 <= 5
-    #     @height += 15
-    #   end
-    # end
 
     def render(context)
       [ '<div class="js-editor hidden">',
