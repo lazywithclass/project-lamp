@@ -28,7 +28,8 @@ $(() => {
     let editor = createEditor(this)
     editor.getSession().on('change', (e) => {
       let newLines = editor.getValue().split('\n').length
-      $(this).css('height', (23 * (newLines - (newLines / 23))).toString())
+      // $(this).css('height', (23 * (newLines - (newLines / 23))).toString())
+      $(this).css('height', (21.33333396911621 * newLines)).toString()
       editor.resize()
     });
   });
