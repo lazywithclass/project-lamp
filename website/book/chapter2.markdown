@@ -254,7 +254,7 @@ interp e (If x y z) =
   case interp e x of
     B boo | boo       -> interp e y
           | otherwise -> interp e z
-    _ -> interp e y
+    _     -> interp e y
 ```
 
 #### c. λ-calculus Expressions
@@ -333,7 +333,7 @@ factComb =
 -- pass this to an interpretter
 fact n = App (App yComb factComb) (Num n)%}
 
-Try calculating the `fact` of `20.0`, like so:
+Try calculating `fact` of `20.0`, like so:
 ```haskell
 interp EmptyEnv (fact 20.0)
 ```
@@ -395,7 +395,7 @@ calcValueD e op =
     ND num -> num
     _      ->
       error "arithmetic on non-number"%}
-Here, we have modified the definition of `Value` into a new type called `ValueD`. The only change is that the `FD` constructor is parameterized over the `Closure` type as opposd to the arrow-type in PureScript. We have also modifed the definition of `calcValue` to reflect the changes in `ValueD`.
+Here, we have modified the definition of `Value` into a new type called `ValueD`. The only change is the names of the constructors and that the `FD` constructor is parameterized over the `Closure` type as opposd to the PureScript arrow-type. We have also modifed the definition of `calcValue` to reflect the changes in `ValueD`.
 
 Since we are no longer using the built-in functions of PureScript, we must also specify how a `Closure` should be applied and created. The first step is to implement these functions:
 

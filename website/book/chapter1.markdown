@@ -69,10 +69,10 @@ b. Start of Function Application
 c. Namespace Expansion
 d. Namespace Reference
 ```
-An added benefit of understanding β-reduction is that every reduction can be thought of as an *equivalence*. That is, `(partial y x)` is β-equivalent to `(foo2 foo1 y x)` and so on, even all the way down to the final value, `6`. This is only true because of a feature of purely functional languages called *referential transparency*. This simply means that a function, given a value (i.e., a context), will **always** return the same value under that same context, giving the programmer of a functional language the ability to reason about the equality of program *expressions* without even having to execute any code. Doing so is called *equational reasoning*, an example of which is included in this chapter's exercises!
+An added benefit of understanding β-reduction is that every reduction can be thought of as an *equivalence*. That is, `(partial y x)` is β-equivalent to `(foo2 foo1 y x)` and so on, even all the way down to the final value, `6`. This is only true because of a feature of purely functional languages called *referential transparency*. This means that a function, given an input (i.e., a context), will **always** return the same output, giving the programmer of a functional language the ability to reason about the equality of program *expressions* without even having to execute the code itself. Doing so is called *equational reasoning*, an example of which is included in this chapter's exercises!
 
 ### 2. Types in Programming Languages
-Many programming languages, functional or otherwise, feature entities that are known as *types*. The more familiar types, such as `Int`, `Boolean` and `String`, are found in virtually every programming language and contain (or, in math speak, *are inhabited*) by values like `42`, `true` and `"apple"`, respectively. In some functional languages, however, types play a more intimate and important role, giving them certain *benefits* and *abilities* over others. In this section, we introduce the basics about types in functional languages and as well as a few key concepts about them that every functional programmer should be aware of.
+Many programming languages, functional or otherwise, feature entities that are known as *types*. The more familiar types, such as `Int`, `Boolean` and `String`, are found in virtually every programming language and contain (or, in math speak, *are inhabited*) by values like `42`, `true` and `"apple"`, respectively. In some functional languages, however, types play a more intimate and dynamic role, giving them certain *benefits* and *abilities* over others. In this section, we introduce the basics about types in functional languages and as well as a few key concepts about them that every functional programmer should be aware of.
 
 #### a. Everyone gets a Type! -- Inhabitance
 In a statically typed language, one has *values*, and one has *types*. The two are related in a rather simple way: *every value has a type*. For the purposes of this chapter, we need not go any further than this statement.
@@ -102,9 +102,9 @@ Defining our own types require that we adhere to a simple set of rules. To make 
 ```haskell
 data Point = Point Number Number
 ```
-A `Point` is a type with one *term-constructor* (also called `Point`), which is a function that takes two `Number`s, representing the `x` and `y` values of a given point on an x-y axis. Here, unlike variables, the names of types and type constructors must start with an *upper-case* letter. As a liberty to the programmer, PureScript allows term-constructors to use the same name as the type that they are defined in when the given type is designed with only *one* constructor (this practice is called constructor *punning*). In the event that a type requires more than one constructor, each constructor requires a unique name to properly differentiate it from the other ways of constructing values of the type.
+A `Point` is a type with one *term-constructor* (also called `Point`), which is a function that takes two `Number`s, representing the `x` and `y` values of a given point on an x-y axis. Here, unlike variables, the names of types and type constructors must start with an *upper-case* letter. As a liberty to the programmer, PureScript allows term-constructors to use the same name as the type that they are defined for when the given type is designed with only *one* constructor (this practice is called constructor *punning*). In the event that a type requires more than one constructor, each constructor requires a unique name to properly differentiate it from the other ways of constructing values of the type.
 
-Term-constructors are considered a special kind of value, and unlike normal, atomic values (e.g. `Number`s), term-constructors are values that can be *pattern matched*, which allows for an elegant way of defining functions over certain types. As an example, let's define the type `IntList`, the type inhabited by lists of `Int`, then define a function `isEmpty` which determines whether or not a given `IntList` contains no elements or not.
+Term-constructors can also be *pattern matched*, which allows for an elegant way of defining functions. As an example, let's define the type `IntList`, the type inhabited by lists of `Int`, then define a function `isEmpty` which determines whether or not a given `IntList` contains any elements.
 
 First, the definition of `IntList`:
 {% basic_hidden listdef#instance showIntList :: Show IntList where
@@ -127,6 +127,8 @@ Now, let's define `isEmpty`. With the power of pattern matching, writing this fu
 isEmpty Empty       = true
 isEmpty (Push i is) = false%}
 
+On top of this, when we declare our function to be parameterized over an `IntList`, the type checker is actually aware of all the ways of constructing an `IntList` and provides the programmer aid in defining cases for each of its constructors. Should the programmer forget to provide a case for one of a type's constructors, the type checker provides an error detailing all the other cases missing. Try removing one of the cases for `isEmpty` and see what happens when you execute the above code snippet!
+
 **Aside**: PureScript treats `Boolean`s a bit differently than Haskell. The values `true` and `false` *should* start with a capital letters (just as they do in Haskell) since they are both term-constructors of the `Boolean` type. In the case of PureScript, however, these two entitites appear lower-cased solely because this is how they appear in JavaScript.
 
 **Random Question**: What happens when we pattern match over a constructor that doesn't belong to the type that we are defining our function over? Say, for example, we add the following case to `isEmpty`:
@@ -145,7 +147,7 @@ add1: contract violation
   expected: number?
   given: "Banana"
 ```
-In this simple example, it's easy to see where one incorrectly used the function `add1`, but in more complex situations, for example if one used `add1` multiple times in one's program, it can be become rather difficult to determine where/how the actual error occurred.
+In this simple example, it's easy to see where one incorrectly used the function `add1`, but in more complex situations, for example if one used `add1` multiple times in one's program, it can be rather difficult to determine where/how the actual error occurred.
 
 *"I'll just program correctly then,"* one might be thinking.
 
@@ -159,7 +161,7 @@ const :: forall a b. a -> b -> a
 const x y = x%}
 These functions work for *every* possible input, as they represent the polymorphic functions of the λ-calculus known as the *identity* and *constant* combinators. They, in fact, *should* work for all possible inputs, which is precisely what their type declarations detail. That is, `id` takes an `a` and returns an `a`, where `a` can be *any* type. In the case of `const`, `a` and `b` are also of type *any*. Their names are different to specify that `const` returns a value of the type of its first argument.
 
-**Note**: When it comes to polymorphic functions, there is less flexibility and variance in how to construct return values. For example, the only way that `id` and `const` can return an `a` is by returning their first argument. This is because, in general, it is impossible to return an element of an arbitrary type.
+**Note**: When it comes to polymorphic functions, there is less flexibility and variance in constructing return values. For example, the only way that `id` and `const` can return an `a` is by returning their first argument. This is because, in general, it is impossible to return an element of an arbitrary type.
 
 Aside from being able to write functions that work over *all* inputs, we can also write polymorphic functions that work for a *smaller* number of inputs. We do with *type-classes*. In the introduction of this book, we defined `quicksort`, which has the type:
 ```haskell
@@ -167,7 +169,7 @@ forall a. (Ord a) => List a -> List a
 ```
 This means that `quicksort` works for *any* `List` type, given that the elements of said list contains elements of the `Ord` class. This relieves one from having to write `quicksort` that works for lists containing *non-sortable* elements. Using type classes to constrain function inputs also gives one access to the pre-defined functions of the given class, which in this case are `<`, `<=`, `>`, `>=` and `==`.
 
-Thanks to polymorphism, we can now define a more *general* `List` type, as opposed to having to define a `List` type for *every* other type we would want to put into lists. This type comes pre-defined in PureScript and is a type parameterized over all types `a`:
+Polymorphism can also be used with types. Thanks to polymorphism, we can now define a more *general* `List` type. This polymorphic definition allows us to have one definition of `List` that includes all other instances of `List`s regardless of the type of their elements. This type comes pre-defined in PureScript and is a type parameterized over all types `a`:
 ```haskell
 data List a = Nil
             | Cons a (List a)
@@ -182,6 +184,8 @@ boolList = (true:false:Nil)
 empty :: forall a. List a -> Boolean
 empty Nil    = true
 empty (x:xs) = false%}
+
+**NOTE:** The `:` symbol is an infix reader sugar for the `Cons` constructor.
 
 ### 3. Recursion and its Principles
 We end this chapter with an overview of writing in a *recursive style*. The idea of recursion is not unique to functional languages, as recursion is central and fundamental to all computer programming. As we mentioned in the introduction of this book, there are stark differences in the way that imperative and functional programs are written, which can be seen quite clearly in how a functional language incorporates a certain style of recursion. <!-- while an imperative languge incorporates and encourages recursion via recursive constructs like `for` and `while`, which are (basically) abset in *purely* functional programs. -->
@@ -350,16 +354,23 @@ appendRev xs ys = append (rev xs) ys
 ```
 Then, using the results of `(1)` and `(2)`, below,  define a new version that no longer uses `append`.
 
-1. Using β-reduction, calculate `appendRev [] ys`.
+1. Using β-reduction, calculate `appendRev Nil ys`.
 2. In the same way as `(1)`, calculate `appendRev (x:xs) ys`.
 
-{% basic appendRev#appendRev :: forall a. List a -> List a -> List a
-appendRev Nil ys    = undefined -- (1) goes here
-appendRev (x:xs) ys = undefined -- (2) goes here%}
+The first β-reduction step has been provided. Each reduced expression is interchangeable with another, so `appendRev` and `fastRev` should still perform correctly regardless of which step of the reduction is currently defined. This is a great way to check the correctness of each reduction!
+
+{% repl_only appendRev#appendRev :: forall a. List a -> List a -> List a
+appendRev Nil ys    =
+  -- (1) 
+  append (rev Nil) ys
+appendRev (x:xs) ys =
+  -- (2) 
+  append (rev (x:xs)) ys
+
+fastRev :: forall a. List a -> List a
+fastRev xs = appendRev xs Nil%}
 
 *Voila!* The following function, `fastRev`, should now be significantly faster than `rev`! **Magical**.
-{% repl_only everything#fastRev :: forall a. List a -> List a
-fastRev xs = appendRev xs Nil%}
 #### ii. Recursion Principles
 Consider the definition of the simplest foldable data structure: the *Natural Number*!
 {% basic_hidden nat#toInt :: Nat -> Int
