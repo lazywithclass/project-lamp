@@ -351,7 +351,7 @@ There is a rather strange repercussion of having functions as first-class expres
 const = Lam "x" (Lam "y" (Var "x"))%}
 Then try:
 ```haskell
-interp EmptyEnv idTerm
+interp EmptyEnv id
 ```
 
 `Function`. Seems legit. The reason why `Function` is being printed is because we have no access to the elements of the function we are trying to print! The reason for this is that we've implemented function values in terms of PureScript functions.
