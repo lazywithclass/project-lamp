@@ -4,6 +4,7 @@ title: "Introduction - Starting Out, Nice and Easy"
 permalink: /introduction/
 custom_js:
 - jquery.min
+- anchor.min
 - ace.min
 - mode-haskell.min
 - bundle
