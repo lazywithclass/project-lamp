@@ -28,7 +28,8 @@ $(() => {
     let editor = createEditor(this)
     editor.getSession().on('change', (e) => {
       let newLines = editor.getValue().split('\n').length
-      $(this).css('height', (23 * (newLines - (newLines / 23))).toString())
+      // $(this).css('height', (23 * (newLines - (newLines / 23))).toString())
+      $(this).css('height', (21.33333396911621 * newLines)).toString()
       editor.resize()
     });
   });
@@ -103,6 +104,7 @@ function pageCode() {
       'import Data.List\n' +
       'import Data.Maybe\n' +
       'import Control.Monad.Eff.Console (logShow)\n' +
+      'import Control.Monad.Eff.Exception.Unsafe\n' +
       'import TryPureScript\n' +
       'import Test.QuickCheck (class Arbitrary, quickCheck)\n' +
       'import Test.QuickCheck.Gen (chooseInt)\n' +
@@ -110,6 +112,9 @@ function pageCode() {
       '\n' +
       'undefined :: forall a. a\n' +
       'undefined = unsafeCoerce unit\n' +
+      '\n' +
+      'error :: forall a. String -> a\n' +
+      'error = unsafeThrow\n' +
       '\n' 
 
   return (snippet) => {
