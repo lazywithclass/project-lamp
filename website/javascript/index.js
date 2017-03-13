@@ -54,9 +54,7 @@ $(() => {
               '})(module);',
               'module.exports.main && module.exports.main();',
             ].join('\n');
-        overrideConsole(`.js-results.${identifier}`)
-        eval(wrapped)
-        restoreConsole()
+        safeEval(wrapped, identifier)
       }
     })
   })
@@ -82,9 +80,7 @@ $(() => {
               '})(module);',
               'module.exports.main && module.exports.main();',
             ].join('\n');
-        overrideConsole(`.js-results.${identifier}`)
-        eval(wrapped)
-        restoreConsole()
+        safeEval(wrapped, identifier)
       }
     })
   })
@@ -176,4 +172,14 @@ function overrideConsole(selector) {
 
 function restoreConsole() {
   window.console = consoleRef
+}
+
+function safeEval(code, identifier) {
+  overrideConsole(`.js-results.${identifier}`)
+  try {
+    eval(code)
+  } catch (e) {
+    $(`.js-errors.${identifier}`).html(e.message)
+  }
+  restoreConsole()
 }
