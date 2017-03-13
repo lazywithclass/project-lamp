@@ -360,7 +360,8 @@ Then, using the results of `(1)` and `(2)`, below,  define a new version that no
 
 The first β-reduction step has been provided. Each reduced expression is interchangeable with another, so `appendRev` and `fastRev` should still perform correctly regardless of which step of the reduction is currently defined. This is a great way to check the correctness of each reduction!
 
-{% repl_only appendRev#appendRev :: forall a. List a -> List a -> List a
+{% testable revProp#revProp :: List Int -> Boolean
+revProp l = fastRev l == rev l#appendRev :: forall a. List a -> List a -> List a
 appendRev Nil ys    =
   -- (1) 
   append (rev Nil) ys
