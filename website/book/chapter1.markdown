@@ -360,8 +360,8 @@ Then, using the results of `(1)` and `(2)`, below,  define a new version that no
 
 The first β-reduction step has been provided. Each reduced expression is interchangeable with another, so `appendRev` and `fastRev` should still perform correctly regardless of which step of the reduction is currently defined. This is a great way to check the correctness of each reduction!
 
-{% testable revProp#revProp :: List Int -> Boolean
-revProp l = fastRev l == rev l#appendRev :: forall a. List a -> List a -> List a
+{% testable revProp#revProp :: List Int -> Result
+revProp l = fastRev l === rev l#appendRev :: forall a. List a -> List a -> List a
 appendRev Nil ys    =
   -- (1) 
   append (rev Nil) ys
@@ -421,14 +421,13 @@ foldNat base build (Add1 n) = foldNat (build base) build n%}
 five = Add1 (Add1 (Add1 (Add1 (Add1 Zero))))%}
 * Define `plusFold` that behaves like `plus` but uses `foldNat`.
 
-{% testable plusId#plusId :: Nat -> Boolean
-plusId n = n `plusFold` Zero == n
-#plusFold :: Nat -> Nat -> Nat
+{% testable plusProp#plusProp :: Nat -> Nat -> Result
+plusProp m n = m `plusFold` n === m `plus` n#plusFold :: Nat -> Nat -> Nat
 plusFold m n = undefined%}
 * Define `timesFold` that behaves like `times` but uses `foldNat`.
 
-{% testable timesId#timesId :: Nat -> Boolean
-timesId n = n `timesFold` (Add1 Zero) == n#timesFold :: Nat -> Nat -> Nat
+{% testable timesId#timesProp :: Nat -> Nat -> Result
+timesProp m n = m `timesFold` n === m `times` n#timesFold :: Nat -> Nat -> Nat
 timesFold m n = undefined%}
 * *BONUS!!* Do the same for `fact`. **HINT**: `Tuple`.
 
