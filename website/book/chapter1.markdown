@@ -4,6 +4,7 @@ title: Chapter 1 - First Steps
 permalink: /chapter1/
 custom_js:
 - jquery.min
+- anchor.min
 - ace.min
 - mode-haskell.min
 - bundle
