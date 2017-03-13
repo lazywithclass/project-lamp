@@ -112,7 +112,7 @@ function pageCode() {
       'import Control.Monad.Eff.Console (logShow)\n' +
       'import Control.Monad.Eff.Exception.Unsafe\n' +
       'import TryPureScript\n' +
-      'import Test.QuickCheck (class Arbitrary, quickCheck)\n' +
+      'import Test.QuickCheck (class Arbitrary, test, Result(), (===), quickCheck)\n' +
       'import Test.QuickCheck.Gen (chooseInt)\n' +
       'import Unsafe.Coerce (unsafeCoerce)\n' +
       '\n' +
