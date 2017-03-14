@@ -195,7 +195,7 @@ To do this, we must first figure out where the code snippets differ. Suprisingly
 2. Pattern match with the `(N i)` pattern on the result of `(1)`. Any other pattern, signal an error.
 3. Perform `-` or `*` on the number `Value`s resulting from `(2)`.
 
-For `(1)` and `(2)`, we can write the function, `f`, which takes a `Term`, passes it to `interp` and pattern matches over the `(N i)` case:
+For `(1)` and `(2)`, we can write the function, `f`, which takes an `Env` and a `Term`, interprets the `Term` with the `Env`, then pattern matches over the `(N i)` case:
 ```haskell
 \e x ->
   case interp e x of
@@ -203,11 +203,11 @@ For `(1)` and `(2)`, we can write the function, `f`, which takes a `Term`, passe
     _     ->
       error "arithmetic on non-number"
 ```
-The result of this function, `num`, is then passed to either `-` or `*`. We can then write a function that takes a certain `f`, applies it to two expressions, then applies an `op` to their results, which looks like:
+When interpreting arithmetic, we apply this function to extract the `Number` values from both `Term`s in `Sub` and `Mul`. These `Number`s are then passed to either `-` or `*`. So, let's write a function that applies an `f` to two expressions, then applies an `op` to their results:
 ```haskell
 \op f x y -> f x `op` f y
 ```
-For historial reasons, we name this function `on`. Using `on`, we determine that `f` is `interp` and `op` is either `-` or `*`. From this, we derive the definition for `calcValue`:
+For historial reasons, we name this function `on`. Using `on`, we derive the definition for `calcValue`, which performs points `(1)` - `(3)`:
 {% basic somehelpers#on :: forall a b c.
       (b -> b -> c) -> (a -> b) ->
       a -> a -> c
@@ -234,9 +234,9 @@ In this section, we handle the `Term` expressions for:
 IsZero Term | If Term Term Term
 ```
 
-These aren't too different from number valued expressions, except for the fact that `IsZero` returns a `Boolean` `Value`, `(B b)`, while `If` returns a value of the type of its branches.
+These aren't too different from number `Value`d expressions, except for the fact that `IsZero` returns a `Boolean` `Value`, `(B b)`, while `If` returns a value of the type of its branches.
 
-Let's start with `IsZero`. To implement its functionality, we first interpret the `Term` passed to `IsZero`, then determine whether or not the resulting value is the value `(N 0.0)`:
+Let's start with `IsZero`. To implement its functionality, we first interpret the `Term` passed to `IsZero`, then determine whether or not the resulting value is `(N 0.0)`:
 ```haskell
 interp e (IsZero x)  =
   B $ case interp e x of
@@ -263,12 +263,12 @@ Var Name | Lam Name Term | App Term Term
 
 Let's start with the simplest case: `Var`. From the definition of the `Var` expression, we see that it is parameterized over a single sub-expression, a `Name`. To convert a `Name` into a `Value`, we use `lookUp` to return the `Value` associated with given `Name`:
 ```haskell
-interp e (Var x) = lookUp e x
+interp e (Var n) = lookUp e n
 ```
-Next, we handle `Lam` expressions. `Lam` expressions are our language's representation of functions, which we re-represent as function `Value`s, `(F f)`. Aside from this, each `Lam` expression contains a `Name` and a `Term`, which represent the formal parameter and the body of a function. To model the proper behavior of a function, we must find the value of its body under then extended context of its `Name` parameter associated with the `Value` passed to the function when it is applied. This is synonymous with creating a function that receives a `Value`, then extends the `Env` with the association of the given `Name` and `Value`.
+Next, we handle `Lam` expressions. `Lam` expressions are our language's representation of functions, which we re-represent as function `Value`s, `(F f)`. Aside from this, each `Lam` expression contains a `Name` and a `Term`, which represent the formal parameter and the body of a function. To model the proper behavior of a function, we must find the value of its body under then extended context of its `Name` parameter associated with the `Value` passed to the function when it is applied. This is synonymous with creating a function that receives a `Value`, then extends an `Env`, associating the `Lam`'s `Name` parameter with the `Value`, then interpretting the `Lam`'s `Term`:
 ```haskell
-interp e (Lam v b) =
-  F $ \a -> interp (extend v a e) b
+interp e (Lam n b) =
+  F $ \val -> interp (extend n val e) b
 ```
 This makes a bit more sense after we implement the case for function application, which is handled by the `App` case. Here, we interpret the value of the first `Term`, which *should* be a function `Value`, then apply the resulting function to the `Value` of the second `Term`. In the event that a non-function value is applied, we signal an error.
 ```haskell
@@ -294,10 +294,10 @@ interp e (If x y z) =
     B boo | boo       -> interp e y
           | otherwise -> interp e z
     _     -> interp e y
-interp e (Var x)   =
-  lookUp e x
-interp e (Lam v b) =
-  F $ \a -> interp (extend v a e) b
+interp e (Var n)   =
+  lookUp e n
+interp e (Lam n b) =
+  F $ \val -> interp (extend n val e) b
 interp e (App l r) =
   case interp e l of
     F foo -> foo $ interp e r
@@ -363,7 +363,7 @@ interpreter goes here (little changes only)
 There are several important pieces to every function, two of which are made immediately clear from its data definition: a `Name` and a `Term`, representing the body of the function. Aside from this, a function should also keep track of its local namespace, which in the context of an interpreter is an `Env`. Knowing this, the value of a function should be a data structure that includes a `Name`, a `Term` and an `Env`, which is otherwise known as a `Closure`.
 
 {% basic closures#newtype Closure = Closure {
-  var  :: Name,
+  name :: Name,
   body :: Term,
   env  :: Env ValueD
 }%}
@@ -377,7 +377,7 @@ For this chapter's exercises, we will translate `interp` into a new interpreter 
   show (ND x) = "ND " <> show x-- .n
   show (BD x) = "BD " <> show x-- .b
   show (FD (Closure clos)) =
-    "Function from " <> clos.var <>
+    "Function from " <> clos.name <>
     " returns " <> show clos.body <>
     ", with context " <> show clos.env
 #data ValueD = ND Number
@@ -397,10 +397,11 @@ Here, we have modified the definition of `Value` into a new type called `ValueD`
 Since we are no longer using the built-in functions of PureScript, we must also specify how a `Closure` should be applied and created. The first step is to implement these functions:
 
 {% basic clos#applyClosure :: Closure -> ValueD -> ValueD
-applyClosure (Closure clos) rat = undefined
+applyClosure (Closure clos) val =
+  undefined
 
 makeClosure :: Name -> Term -> Env ValueD -> Closure
-makeClosure n t e = undefined%}
+makeClosure n b e = undefined%}
 
 **HINT:** For `applyClosure`, look back at `interp` and inspect how functions are applied. For `makeClosure`, inspect how a function `Value` was created.
 
@@ -421,18 +422,18 @@ interpD e (If x y z) =
     BD b | b         -> interpD e y
          | otherwise -> interpD e z
     _    -> interpD e y
-interpD e (Var x)   = lookUp e x
+interpD e (Var n)   = lookUp e n
 -- notice the changes made to these cases
-interpD e (Lam v b) = FD $ makeClosure v b e
+interpD e (Lam n b) = FD $ makeClosure n b e
 interpD e (App l r) = case interpD e l of
   FD foo -> applyClosure foo (interpD e r)
   _      -> error "applied non function value"%}
 
 We can now also evaluate arbitrary functions like:
 ```haskell
-interpD EmptyEnv id
+interpD EmptyEnv (App const (Num 6.0))
 ```
 and obtain more detailed answers:
 ```haskell
-Function from x returns x, with context {}
+Function from y returns x, with context {x: (ND 6.0)}
 ```

@@ -222,7 +222,7 @@ In the first line, we define our function's *base-case*. This means that we dete
 In the second line, we define what our function should do in the event that the given list is *not* empty. If we inspect the type of `x` and `xs`, we find that `x` is an `Int` and `xs` is a `List Int`. Logically, we would want to sum over the list we have, `xs`, by passing it to `sum` (recurring over `xs`). Doing so provides the *rest* of the computation and according to the type definiton of `sum` results in an `Int`. We would then want to add `x` to the result of summing the rest of the elements to implement the proper behavior of the function.
 
 For clarity, we can *trace* each step in the computation by performing a β-reduction. For example, if we call `sum` on the list `(1:2:3:4:5:Nil)`, we get the following reduction:
-```
+```haskell
 sum (1:2:3:4:5:Nil)
 == 1 + (sum (2:3:4:5:Nil))
 == 1 + (2 + (sum (3:4:5:Nil)))
@@ -245,7 +245,7 @@ We can, however, alleviate the memory strain by making a small change. Instead o
 sumAcc xs = sumAcc' 0 xs
   where sumAcc' acc Nil    = acc
         sumAcc' acc (x:xs) = sumAcc' (acc + x) xs%}
-```
+```haskell
 sumAcc (1:2:3:4:5:Nil)
 == sumAcc' 0 (1:2:3:4:5:Nil)
 == sumAcc' (0 + 1) (2:3:4:5:Nil)
@@ -268,13 +268,13 @@ Let's continue with lists. Let's imagine what one might want to do with a list: 
 3. This function should abstract over the pattern of all possible functions over lists.
 
 Now, let's piece it together. From `(1)`, we know that this function should return an *any* type. This means we need a polymorphic return value. Let's call it `r`. From `(2)`, this function should be able to accept *any* list. This means we need another polymorphic variable that is parameterized under the `List` type; let's call it `List a`. So far, we have the following:
-```
+```haskell
 foldList :: forall a r. ... -> List a -> r
 ```
 Hoorah. We're almost done. Our function now accepts *any* list and returns a value of an arbitrary type. 
 
 For `(3)`, we must acknowledge a few things. Firstly, for a function to capture the *essence* of every function defined over a list, it itself must be recursive. This is because lists are recursively defined. We have already seen how a function defined for lists should look like. In this sense, we can start to imagine how `foldList` should be implemented. Since we are defining `foldList` to be able to return an `r`, an arbitrary value, we naturally need an `r` to return in the event the given list is empty. Let's update our type definition to reflect this:
-```
+```haskell
 foldList :: forall a r. r -> ... -> List a -> r
 ```
 Finally, we need to abstract the ability to build up from the final return value from the given elements of the provided list. Let's take `sum` as an example once more, and let's think about how its final return value is built up on. If we recall correctly, we used the `+` function:
@@ -284,7 +284,7 @@ Finally, we need to abstract the ability to build up from the final return value
 This dictated that the list passed to `sum` contain only elements of type `Int` and that we use `0` as our final return value. In the case of `foldList`, however, we know that we are not just handling `Int`s anymore. For `foldList`, the provided `List` contains elements of type `a`, and we are returning elements of the type `r`. Thus, we need a *builder* function of type `a -> r -> r`.
 
 Thus, we now have the final type definition of `foldList`:
-```
+```haskell
 foldList :: forall a r. r -> (a -> r -> r) -> List a -> r
 ```
 Filling out the definition of this function becomes rather straightforward due to its polymorphic nature:
@@ -305,9 +305,9 @@ sumFold = foldList 0 (\x ans -> x + ans)
 ## Exercises:
 Since this is the first set of (real) exercises in this book, we take the time to provide some clear instructions on how to interact with them.
 
-Some of the examples below have a small test suite attached to them that determines whether the inputted code works as intended. Receiving a green check mark indicates that one has completed the exercise and passed all the included tests. Conversely, a red "x" indicates that the code does not pass all the necessary tests. One might also run into a few type errors along the way, which will result in neither the green check or the red "x" but instead in a series of red colored text that describes the type error. There is also a small interactable area that one can choose to manually write code snippets to test one's code.
+Some of the examples below have a small test suite (`100` generated tests) attached to them that determines whether the inputted code works as intended. These tests perform a property check on the code defined in the editor and also provide appropriate errors when necessary.
 
-One is also free to use *typed-holes*, which aid one in determining the proper return value for a function. To use typed-holes, one is required to provide a name for the hole prefixed with `?`. For example:
+One is also free to use *typed-holes*. To use typed-holes, one is required to provide a name for the hole prefixed with `?`. For example:
 ```haskell
 anotherConst :: forall a b. a -> b -> a
 anotherConst a b = ?help
@@ -331,6 +331,7 @@ Executing the above code in an interactable editor will result in the following 
 
   in value declaration anotherConst
 ```
+Which helps us determine that `anotherConst` should return its first argument `a` as specified by its type-declaration. While there are several other uses for typed-holes, we won't go into detail on them here--just try them out!
 
 #### i. Equational Reasoning
 Consider the following definitions of `append` and `rev`.
@@ -349,7 +350,7 @@ We can improve its performance using *equational reasoning*, as described in the
 
 We'll start by using this preliminary definition of `appendRev`:
 <!-- NOTE: DO NOT MAKE THIS CODE INTERACTABLE! -->
-```
+```haskell
 appendRev :: forall a. List a -> List a -> List a
 appendRev xs ys = append (rev xs) ys
 ```
