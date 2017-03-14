@@ -48,7 +48,7 @@ Another thing to note about functions is that they have what is known as a *loca
 It might help to see how `(partial y x)` comes up with its answer. In the λ-calculus, this is done through what is known as a *β-reduction*. The name *reduction* seems a bit off-putting, since each step in a *β-reduction* is essentially an expansion of expressions into their respective values. This is where a language like PureScript becomes rather helpful, since the act of reducing is simply taking an expression from the left hand side of an `=` sign to the value on the right. Aside from this, with every function application, a function's namespace grows, where the names of its parameters are associated with the values passed in their place. We represent this *namespace growth* as the expression contained within curly braces, `{}`, placed beside the given function being applied. Once all of a function's parameters have been applied, all occurances of names inside of its body (i.e., the expression after the `->`) are replaced with the respective values mapped inside of its namespace. This continues until there is no other possible reduction. In a [later chapter]({{ site.baseurl }}/chapter2), we show how to simulate this step-by-step calculation inside of PureScript itself!
 
 Let's see a β-reduction in action:
-```
+```haskell
 partial y x
 =(a)= foo2 foo1 y x
 =(a)= (\f x y -> f x) foo1 y x
@@ -160,22 +160,22 @@ id x = x
 
 const :: forall a b. a -> b -> a
 const x y = x%}
-These functions work for *every* possible input, as they represent the polymorphic functions of the λ-calculus known as the *identity* and *constant* combinators. They, in fact, *should* work for all possible inputs, which is precisely what their type declarations detail. That is, `id` takes an `a` and returns an `a`, where `a` can be *any* type. In the case of `const`, `a` and `b` are also of type *any*. Their names are different to specify that `const` returns a value of the type of its first argument.
+**NOTE**: When it comes to polymorphic functions, there is less flexibility and variance in constructing return values. For example, the only way that `id` and `const` can return an `a` is by returning their first argument. This is because, in general, it is impossible to return an element of an arbitrary type.
 
-**Note**: When it comes to polymorphic functions, there is less flexibility and variance in constructing return values. For example, the only way that `id` and `const` can return an `a` is by returning their first argument. This is because, in general, it is impossible to return an element of an arbitrary type.
+These functions work for *every* possible input, and they represent the polymorphic functions of the λ-calculus known as the *identity* and *constant* combinators. They, in fact, *should* work for all possible inputs, which is precisely what their type declarations specify. That is, `id` takes an `a` and returns an `a`, where `a` can be *any* type. In the case of `const`, `a` and `b` are also of type *any*. Here, the variable names are different to specify that `const` returns a value of the type of its first argument.
 
-Aside from being able to write functions that work over *all* inputs, we can also write polymorphic functions that work for a *smaller* number of inputs. We do with *type-classes*. In the introduction of this book, we defined `quicksort`, which has the type:
+Aside from being able to write functions that work over *all* inputs, we can also write polymorphic functions with a constrained set of *any* using *type-classes*. In the introduction of this book, we defined `quicksort`, which has the type:
 ```haskell
 forall a. (Ord a) => List a -> List a
 ```
-This means that `quicksort` works for *any* `List` type, given that the elements of said list contains elements of the `Ord` class. This relieves one from having to write `quicksort` that works for lists containing *non-sortable* elements. Using type classes to constrain function inputs also gives one access to the pre-defined functions of the given class, which in this case are `<`, `<=`, `>`, `>=` and `==`.
+This means that `quicksort` works for *any* `List` type, given that the elements of the `List` are `Ord` values. This relieves one from having to write `quicksort` that works for `List`s containing *non-sortable* elements. 
 
-Polymorphism can also be used with types. Thanks to polymorphism, we can now define a more *general* `List` type. This polymorphic definition allows us to have one definition of `List` that includes all other instances of `List`s regardless of the type of their elements. This type comes pre-defined in PureScript and is a type parameterized over all types `a`:
+Aside from functions, polymorphism can also be used with types. Using polymorphism, we can define a more general `List` type. This polymorphic definition allows us to have one definition of `List` that includes all other instances of `List`s regardless of the type of their elements. This type comes pre-defined in PureScript and is a type parameterized over all types `a`:
 ```haskell
 data List a = Nil
             | Cons a (List a)
 ```
-We can also now define a function similar to `isEmpty` that works for every possible list, regardless of the type of the elements the given list actually contains. Here, we are also using `:` as sugar for `Cons`. We are also free to use this syntax inside of pattern matches cases:
+We can then define a function similar to `isEmpty` that works for every possible list, regardless of the type of the elements the given list actually contains. 
 {% repl_only isallempty#intList :: List Int
 intList = (1:2:Nil)
 
@@ -202,7 +202,7 @@ for elem in arr:
   sum += elem
 print sum
 ```
-Here, we have an array, `arr`, which we calculate the sum of its elements. We achieve this is by iterating over the elements in `arr` using a `for` loop, individually adding each element in the array and add them to `sum`. If we were to translate this program directly into PureScript, we would find that we are missing the ability to *iteratively loop* over a structure. To do this in a functional language, we would be required to abstract over the *stateful* computation that happens when `sum` is updated in each iteration of the `for` loop. While this is indeed possible, it is by far *not* the simplest way to do so (we return to this idea in [Chapter 3]()).
+Here, we have an array, `arr`, which we calculate the sum of its elements. We achieve this is by iterating over the elements in `arr` using a `for` loop, individually adding each element in the array and add them to `sum`. If we were to translate this program directly into PureScript, we would find that we are missing the ability to *iteratively loop* over a structure. To do this in a functional language, we would be required to abstract over the *stateful* computation that happens when `sum` is updated in each iteration of the `for` loop. While this is indeed possible, it is by far *not* the simplest way to do so (we return to this idea in [Chapter 4]({{ site.baseurl }}/chapter4)).
 
 In a functional language, we instead have the ability to write a recursive function that performs a *step-wise* computation. This style of writing follows a certain pattern:
 

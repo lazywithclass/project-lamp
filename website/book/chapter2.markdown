@@ -368,7 +368,7 @@ There are several important pieces to every function, two of which are made imme
   env  :: Env ValueD
 }%}
 
-A `Closure` is the result of evaluating a function, which we represent here as a record with three fields: `var`, `body` and `env`. The benefit of representing function values in this way is that we no longer have to rely on PureScript's built-in functions, allowing us to evaluate functions in our own way and return more a specific representation of their values.
+A `Closure` is the result of evaluating a function, which we represent here as a record with three fields: `var`, `body` and `env`. The benefit of representing function values in this way is that we no longer have to rely on PureScript's built-in functions, allowing us to evaluate functions in our own way and return a more specific representation of their values.
 
 ## Exercises:
 For this chapter's exercises, we will translate `interp` into a new interpreter that incoprorates the `Closure` type. This requires a few changes to several functions and our definition of `Value`:
