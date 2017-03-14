@@ -40,12 +40,10 @@ Same as repl_only but includes property tests
 
 Every editor requires an `ID`, which is translated into an HTML identifier. All other code should be written in an appropriate text-editor to respect proper code indentation, then copy-pasted into the appropriate expression (i.e., either `HIDDEN_HERE` or `CODE_HERE`).
 
-Some **IMPORTANT** notes:
-
 * The first line of every code snippet must *immediately* proceed the `#` symbol. This is the proper place to paste code snippets.
 * The last line of every code snippet must be *immediately* proceeded by the closing `%}` symbol.
 
-This is to avoid adding newlines and extra whitespace before and after editor code.
+This is to avoid adding newlines and extra whitespace before and after editor code. If you find any of these conventions for editors annoying, feel free to edit the Ruby code in `website/_plugins`.
 
 ## Jekyll
 This project is built using Jekyll. If you would like to see local edits live, install Jekyll, then after forking this repo, navigate to the `website` folder, then run `jekyll build`.
