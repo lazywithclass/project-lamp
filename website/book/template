@@ -1,0 +1,23 @@
+---
+layout: page
+title: 
+permalink: 
+custom_js:
+- jquery.min
+- anchor.min
+- ace.min
+- mode-haskell.min
+- bundle
+- index
+---
+### 1.
+#### a.
+### 2.
+#### a.
+### 3.
+#### a.
+
+## Exercises:
+
+#### i.
+#### ii. 
