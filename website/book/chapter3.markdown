@@ -16,10 +16,10 @@ custom_js:
 
 In this chapter, we introduce *continuations* and writing functions in *continuation passing style* (CPS). We also discuss the reasons for writing CPSed programs.
 
-### 1. Continuation Passing Style
+## 1. Continuation Passing Style
 In essence, a continuation is a higher-order function that abstracts over an extended content for performing a certain computation. This is much more easily explained in a functional language, since we can treat continuations simply as a special form of accumulator, where the value being "accumulated" is a function. Doing this also has the added benefit of providing control over program evaluation.
 
-#### a. Callback Everyday -- Continuations
+### a. Callback Everyday -- Continuations
 <!-- Convert a few basic functions -->
 As we mentioned, a continuation is a higher-order function and writing in CPS is synonymous with using a function as an accumulator.
 
@@ -90,7 +90,7 @@ id 6
 
 **Aside:** `id` is our old friend the identity function. Since continuations are functions, to properly model the behavior of an accumulator, their base value must be `id`.
 
-#### b. One Step at a Time -- Control Flow and Tail Calls
+### b. One Step at a Time -- Control Flow and Tail Calls
 <!-- explicit order of operations -->
 <!-- near stateful computation -->
 
@@ -155,7 +155,7 @@ Doing this, we discover that the call to `rev` *must* happen first! This is beca
 <!-- calling in tail position -->
 <!-- graze on what writing in this way looks like -->
 
-### 2. CPS the Interpreter -- Implementation
+## 2. CPS the Interpreter -- Implementation
 <!-- interpreter goes here -->
 {% basic_hidden terms#instance showEnv :: Show a => Show (Env a) where
   show env = show' env true where
@@ -319,9 +319,9 @@ id $ FC (makeClosure "y" (Var "x") (Ext { name: "x", val: (NC 6.0) } EmptyEnv))
 FC (makeClosure "y" (Var "x") (Ext { name: "x", val: (NC 6.0) } EmptyEnv))
 ```
 
-## Exercises:
+# Exercises:
 
-#### i. CPS Basic Functions
+### i. CPS Basic Functions
 
 * Define `foldList` using CPS and derive its type.
 {% repl_only foldList#foldList base build Nil return = 
@@ -331,6 +331,6 @@ foldList base build (x:xs) return =
     foldList base' build xs $ \ans ->
     return ans%}
 
-#### ii. From CPS to State Machine
+### ii. From CPS to State Machine
 
 {%pagination chapter2#%}

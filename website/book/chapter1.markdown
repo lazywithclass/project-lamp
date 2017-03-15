@@ -16,10 +16,10 @@ custom_js:
 
 In this chapter, we introduce the foundation of all functional languages and their related concepts, we talk about types and their relationship with functional languages, and end with a discussion on the different ways that one can write basic functional programs.
 
-### 1. The λ-calculus
+## 1. The λ-calculus
 One might be thinking *"Calculus? I thought this was about programming?"* It might come as a surprise to some, but mathematics and computer programming have quite a long history and continue to find themselves intertwined as time goes on. One can easily find themselves lost in the history and theory, but that's not the purpose of this book. For our purposes (and at least for the duration of this chapter), the λ-calculus is simply the foundation of functional languages.
 
-#### a. Three's Company -- Foundation
+### a. Three's Company -- Foundation
 The λ-calculus can be thought of as a simple programming language made up of three components: variables, functions, and function application. In many functional languages, the λ-calculus is used at the fundamental level (e.g. function representation and function application), but some use it for many other interesting things, which is a testament to how flexible and powerful the calculus truly is.
 
 How about a few examples?
@@ -44,7 +44,7 @@ Finally, functions are applied using *juxtaposition*, or simply placing the func
 
 Try writing `(partial y x)` in the REPL above.
 
-#### b. The Fine Print -- β-reduction
+### b. The Fine Print -- β-reduction
 
 Another thing to note about functions is that they have what is known as a *local namespace*. This means that names defined within functions (i.e, the names of their parameters) are different from those defined outside of the function. In the examples above, we have defined `x` and `y` to hold the value `5` and `6`, respectively. We then later pass `x` to `foo1`, which makes reference to a certain *other* `x`. It might come as a surprise that `(partial y x)` evaluates to `6` and not `5`! The reason for this is that the `x` and `y` defined outside of `foo1` and `foo2` are said to be defined *globally*, while the `x` and `y` in the definition of `foo1` and `foo2` are defined *locally* and are thus different from one another.
 
@@ -75,10 +75,10 @@ d. Namespace Reference
 ```
 An added benefit of understanding β-reduction is that every reduction can be thought of as an *equivalence*. That is, `(partial y x)` is β-equivalent to `(foo2 foo1 y x)` and so on, even all the way down to the final value, `6`. This is only true because of a feature of purely functional languages called *referential transparency*. This means that a function, given an input (i.e., a context), will **always** return the same output, giving the programmer of a functional language the ability to reason about the equality of program *expressions* without even having to execute the code itself. Doing so is called *equational reasoning*, an example of which is included in this chapter's exercises!
 
-### 2. Types in Programming Languages
+## 2. Types in Programming Languages
 Many programming languages, functional or otherwise, feature entities that are known as *types*. The more familiar types, such as `Int`, `Boolean` and `String`, are found in virtually every programming language and contain (or, in math speak, *are inhabited*) by values like `42`, `true` and `"apple"`, respectively. In some functional languages, however, types play a more intimate and dynamic role, giving them certain *benefits* and *abilities* over others. In this section, we introduce the basics about types in functional languages and as well as a few key concepts about them that every functional programmer should be aware of.
 
-#### a. Everyone gets a Type! -- Inhabitance
+### a. Everyone gets a Type! -- Inhabitance
 In a statically typed language, one has *values*, and one has *types*. The two are related in a rather simple way: *every value has a type*. For the purposes of this chapter, we need not go any further than this statement.
 
 Alas, the benefit of having this constraint is that everything one chooses to write inside of a typed programming language *must* have a corresponding type, and, indeed, that type must be the *correct* one. If, for example, a programmer mistakenly causes an expression to be typed incorrectly, the program does not execute, and the programmer receives a *type error* from the language's *type checker*. One might have seen a few of these while trying to solve the exercises in the introduction of this book.
@@ -99,7 +99,7 @@ The first type error is triggered by the definition of `wrong`, which *should* b
 
 <!-- There are many more mistakes that trigger type errors, some more complex than others. It is, however, probably safe to say that the most common of these errors are related to *incorrectly using/defining functions* (as is the case with the example above). -->
 
-#### b. Just What I Needed -- User Defined Types
+### b. Just What I Needed -- User Defined Types
 It would be a bit silly to say all these great and wonderful things about the power of types in functional languages if one cannot define their own types. Fortunately, in many functional languages, we are free to do so and still reap the benefits of the powerful type system and type checker for our own user-defined types.
 
 Defining our own types require that we adhere to a simple set of rules. To make this immediately clear, we'll define the type of `Point`:
@@ -139,7 +139,7 @@ On top of this, when we declare our function to be parameterized over an `IntLis
 ```haskell
 isEmpty false = false
 ```
-#### c. The Lord of the Foos -- Polymorphism
+### c. The Lord of the Foos -- Polymorphism
 One might be thinking, *"Gee, all this stuff about types is cool and all, but I'm going to miss be able to define a few functions that work for multiple different inputs!"* Indeed, in an untyped functional language, one has the liberty of writing *one* function that accepts every possible input. Take, for example, Racket, an untyped, impure functional language, where one has the liberty of writing functions such as the ones below:
 ```racket
 (define (add1 n) (+ n 1))
@@ -191,10 +191,10 @@ empty (x:xs) = false%}
 
 **NOTE:** The `:` symbol is an infix reader sugar for the `Cons` constructor.
 
-### 3. Recursion and its Principles
+## 3. Recursion and its Principles
 We end this chapter with an overview of writing in a *recursive style*. The idea of recursion is not unique to functional languages, as recursion is central and fundamental to all computer programming. As we mentioned in the introduction of this book, there are stark differences in the way that imperative and functional programs are written, which can be seen quite clearly in how a functional language incorporates a certain style of recursion. <!-- while an imperative languge incorporates and encourages recursion via recursive constructs like `for` and `while`, which are (basically) abset in *purely* functional programs. -->
 
-#### a. Over, and Over, and Over, and Over...
+### a. Over, and Over, and Over, and Over...
 To put it simply, a recursive program is a program that performs a certain *repeated* computation. There are many reasons why one would do this, and one would not really get very far without having to write a recursive program.
 
 Let's start with a simple program written in Python:
@@ -259,7 +259,7 @@ sumAcc (1:2:3:4:5:Nil)
 == 15
 ```
 
-#### b. The Essence of Recursion -- Folding
+### b. The Essence of Recursion -- Folding
 Let's take the idea of recursion one step further. Earlier, we stated that *every* recursive program follows a set pattern. To reiterate, we said that these programs must have a base case and define a computation to repeat. We can actually take advantage of this attribute and encapsulate it in a function that abstracts over the recursive pattern, otherwise known as a *fold* function or a *recursion principle*.
 
 In real life, when one *folds* something, like a T-shirt, one is essentially taking something "big" and making it *smaller*. This is precisely what a fold function is meant to do. That is, take a structure and "fold" it into something else. If one is familiar with JavaScript, one might have used a function called `reduce`. The `reduce` function in JavaScript is synonymous to a fold function defined for list-like structures. In reality, however, one can define a fold function for virtually *every* type.
@@ -305,7 +305,7 @@ sumFold = foldList 0 (\x ans -> x + ans)
 -- this is a comment: try switching the definition!
 -- sumFold = foldList' 0 (\x ans -> x + ans) %}
 
-## Exercises:
+# Exercises:
 Since this is the first set of (real) exercises in this book, we take the time to provide some clear instructions on how to interact with them.
 
 Some of the examples below have a small test suite (`100` generated tests) attached to them that determines whether the inputted code works as intended. These tests perform a property check on the code defined in the editor and also provide appropriate errors when necessary.
@@ -336,7 +336,7 @@ Executing the above code in an interactable editor will result in the following 
 ```
 Which helps us determine that `anotherConst` should return its first argument `a` as specified by its type-declaration. While there are several other uses for typed-holes, we won't go into detail on them here--just try them out!
 
-#### i. Equational Reasoning
+### i. Equational Reasoning
 Consider the following definitions of `append` and `rev`.
 
 {% repl_only appendrev#append :: forall a. List a -> List a -> List a
@@ -377,7 +377,7 @@ fastRev :: forall a. List a -> List a
 fastRev xs = appendRev xs Nil%}
 
 *Voila!* The following function, `fastRev`, should now be significantly faster than `rev`! **Magical**.
-#### ii. Recursion Principles
+### ii. Recursion Principles
 Consider the definition of the simplest foldable data structure: the *Natural Number*!
 {% basic_hidden nat#toInt :: Nat -> Int
 toInt n = toInt' n 0

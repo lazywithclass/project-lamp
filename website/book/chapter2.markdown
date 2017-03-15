@@ -16,10 +16,10 @@ custom_js:
 
 In this chapter, we implement a basic interpreter in PureScript for a small programming language. This helps expand on the concepts we covered in the previous chapter while also providing a substantial example of writing code in functional languages.
 
-### 1. The Big Picture
+## 1. The Big Picture
 The idea of interpreting is generally used in the context of translating one spoken language into another. As a computer program, an *interpreter* is a program that translates one data respresentation into another. Before we can write an interpreter, we must first classify our data representation and determine *how* to re-represent it.
 
-#### a. We're Not in PureScript Anymore -- Representing the λ-calculus
+### a. We're Not in PureScript Anymore -- Representing the λ-calculus
 
 In the first chapter, we briefly went over the fundamental concepts of the λ-calculus. We now have the opportunity to go quite a bit more in depth into details of the calculus and show off what the calculus is designed to do. An effective way of doing this is to develop an interpreter for the untyped λ-calculus, which not only gives us the experience of actually writing an interpreter but also a more holistic understanding of the λ-calculus itself. 
 
@@ -69,7 +69,7 @@ data Term = Num Number        -- numbers
 		  
 We have now successfully implemented an appropriate representation of the (extended) λ-calculus inside of PureScript. The next step is to specify our *target language* or the data representation we are interpreting into.
 
-#### b. There's a Data Type For That -- Representing Values
+### b. There's a Data Type For That -- Representing Values
 
 We determine the representation of our target language by classifying the kinds of *values* our language can return. This is synonymous with determining the first-class values of a given language. Since our little language encodes arithmetic and conditional branching computations, we would naturally need the appropriate values that result from these computations: `Number`s and `Boolean`s. It is, however, a good idea, from what we've already seen in Chapter 1, to include *functions* as first-class values in a language. Thus, we can represent our target language as a small data type for `Value`s, with constructors for `Number`s, `Boolean`s, and functions:
 {% basic_hidden values#instance showValue :: Show Value where
@@ -85,7 +85,7 @@ We determine the representation of our target language by classifying the kinds 
 
 We now have all the data types necessary to write an interpreter! Before we start work on implementing an interpreter, however, we must go over one extra piece of knowledge. To thoroughly introduce this new concept, we will write a few simple functions to enable our interpreter to interact seamlessly with *environments*.
 
-#### c. My Name is Merriam-Webster -- Environments
+### c. My Name is Merriam-Webster -- Environments
 
 To put it simply, an *environment* is a mapping of `Name`s to `Value`s. When we say *mapping*, this is synonmous to *any* `List`-like data structure, however, this structure is more similar to a *dictionary*, from which we can provide `Name`s and (possibly) obtain a `Value`. The job of the environment is to keep track of the names associated with values in a given computation.
 {% basic_hidden envdef#instance showEnv :: Show a => Show (Env a) where
@@ -145,7 +145,7 @@ env3 = extend "z" (B true) env2%}
 
 **Random Question**: Evaluating `env1` through `env3` results in a rather nice (JSON-esque) representation of the given environment. However, attempting to evaluate `EmptyEnv` results in an error! Why do you think that is?
 
-### 2. Let's Get Down to Business -- Implementation
+## 2. Let's Get Down to Business -- Implementation
 
 We now have the necessary framework to write a basic interpreter for our language! Implementing our interpreter requires us to handle every term-constructor defined for the `Term` data definition, a total of *Eight* cases. Let's break it up into little pieces. We'll implement this function line-by-line and in three sections:
 
@@ -159,7 +159,7 @@ interp :: Env Value -> Term -> Value
 ```
 Let's begin!
 
-#### a. Number Valued Expressions
+### a. Number Valued Expressions
 Our language features `Number` expressions and the ability to `Sub` and `Mul` two `Terms`. In the `Term` data definition, these expressions are:
 ```haskell
 Num Number | Sub Term Term | Mul Term Term
@@ -232,7 +232,7 @@ interp _ (Num i)   = N i
 interp e (Sub x y) = N (calcValue e (-) x y)
 interp e (Mul x y) = N (calcValue e (*) x y)
 ```
-#### b. Boolean and Branching Expressions
+### b. Boolean and Branching Expressions
 In this section, we handle the `Term` expressions for:
 ```haskell
 IsZero Term | If Term Term Term
@@ -257,7 +257,7 @@ interp e (If x y z) =
     _     -> interp e y -- every other Value is equivalent to true
 ```
 
-#### c. λ-calculus Expressions
+### c. λ-calculus Expressions
 *Only three cases to go!!*
 
 Finally, we implement interpretation for λ-calculus expressions:
@@ -337,10 +337,10 @@ Try calculating `fact` of `20.0`, like so:
 interp EmptyEnv (fact 20.0)
 ```
 
-### 3. One More Thing -- The Value of Functions
+## 3. One More Thing -- The Value of Functions
 Our completed interpreter is working as intended. Before continuing, we recommend the reader spend some time experimenting with it to see if there are any particular *oddities* about its behavior. In this section, we'll mention one of them and go over how to fix it.
 
-#### i. One Does Not Simply Show Function Values -- Function Representation
+### i. One Does Not Simply Show Function Values -- Function Representation
 <!--
 Why can't we show functions?
 show how other languages do it (haskell, racket, javascript)
@@ -359,7 +359,7 @@ interp EmptyEnv const
 
 In both cases, we get `Function`. Seems legit. The reason for this is because once we pass `id` or `const` to `interp`, we receive a wrapped function `Value`, `(F f)`, where `f` is a PureScript function. At this point, we no longer have access to the individual components of the function, preventing us from exposing anything about the given function `Value`.
 
-#### ii. A Happy Medium -- Closures
+### ii. A Happy Medium -- Closures
 <!--
 The essence of a function (pieces)
 interpreter goes here (little changes only)
@@ -374,7 +374,7 @@ There are several important pieces to every function, two of which are made imme
 
 A `Closure` is the result of evaluating a function, which we represent here as a record with three fields: `var`, `body` and `env`. The benefit of representing function values in this way is that we no longer have to rely on PureScript's built-in functions, allowing us to evaluate functions in our own way and return a more specific representation of their values.
 
-## Exercises:
+# Exercises:
 For this chapter's exercises, we will translate `interp` into a new interpreter that incoprorates the `Closure` type. This requires a few changes to several functions and our definition of `Value`:
 
 {% basic_hidden valuedef#instance showValueD :: Show ValueD where

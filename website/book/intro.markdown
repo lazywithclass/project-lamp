@@ -14,7 +14,7 @@ custom_js:
 
 # Introduction - Starting Out, Nice and Easy
 
-### 1. Functional Programming?
+## 1. Functional Programming?
 Functional Programming (FP) can be thought of as a method of writing computer programs where *specification* takes precedence over direct manipulation of computer memory and executable *instructions*. This is a bit of an oversimplification, as FP offers quite a bit more benefits that simply allowing a programmer to program *differently*.
 
 Nonetheless, direct memory manipulation is (probably) the more familiar programming concept. In fact, it is the primary idealogy behind languages like C, Java and Python.  The languages allow developers to freely manipulate information stored in memory. Through these languages, programmers compose instructions for the computer to `read` and `write` data. For example, let's consider the following code snippet written in Python:
@@ -49,23 +49,23 @@ Yes. 5 lines, and, with some inlining, we can compress the above definition down
 
 We won't go into much more detail about the differences between imperative and functional code. For now, it is important to clearly state that there are benefits and pitfalls in designing computer programs in both manners of writing code.
 
-### 2. What We're Doing Here
+## 2. What We're Doing Here
 This is **Пroject λamp** (PL), a simple, down to earth introduction to the vast and ever-expanding world of functional programming. This project can be thought of as a tutorial into the core concepts of languages that feature some functional programming ideals and as well as those that rely heavily on them.
 
 For this book, we are using the *PureScript* programming language, a flavor of Haskell. Unlike Haskell, PureScript is intended for use as a *JavaScript replacement*, giving us the needed flexibility for developing a browser-based teaching tool that not only *teaches* functional programming but also allows users to interact with working code within their browser. We are taking direct inspiration from *[Eloquent JavaScript](http://eloquentjavascript.net/)*, which provides much of the same utility for learning the JavaScript programming language.
 
 We must clarify that this book is **not** a book that teaches PureScript (one can find that [here](https://leanpub.com/purescript/read)). Our goal is to provide a seamless and hands-on experience of learning functional languages (like Haskell and PureScript), because we believe that this method of learning is valueable, especially when it comes to learning about functional programming and its core concepts and ideals.
 
-### 3. How to Use this Book
+## 3. How to Use this Book
 Throughout this book, one will find *many* code examples, most of which are written in PureScript (sometimes made to look like Haskell) and all of which are user-interactable. That is, if one should desire to mess around with the given examples, one is able (in fact, *encouraged*) to do so!
 
 It should be mentioned, however, that, unlike a language like JavaScript, a purely functional language does not have easy access to *effectful computations*, the simplest example of which is `print`. To those more familiar with languages that allow the free-reign usage of `print` functions, this might take some getting used to. One should not be too wary, as functional languages offer something that is also quite useful, some would argue *more* so than being able to interact seamlessly with the console, which brings us to our next point.
 
 In this book, we let **exercises** do the talking, a liberty that is present due in part to an advantage of certain functional languages. We hope that the reader will soon come to understand what we mean by this.
 
-## Exercises
+# Exercises
 
-#### i. Quicksort in PureScript
+### i. Quicksort in PureScript
 {%
 repl_only quicksort
 #quicksort :: forall a. (Ord a) => List a -> List a
@@ -83,7 +83,7 @@ How about:
 quicksort (89:81:13:71:52:Nil)
 ```
 
-#### ii. Dabble in Types
+### ii. Dabble in Types
 
 What do you think the *types* are of the following function definitions?
 {%
