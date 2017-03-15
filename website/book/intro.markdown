@@ -1,6 +1,5 @@
 ---
 layout: page
-title: "Introduction - Starting Out, Nice and Easy"
 permalink: /introduction/
 custom_js:
 - jquery.min
@@ -10,6 +9,10 @@ custom_js:
 - bundle
 - index
 ---
+
+{%pagination #chapter1%}
+
+## Introduction - Starting Out, Nice and Easy
 
 ### 1. Functional Programming?
 Functional Programming (FP) can be thought of as a method of writing computer programs where *specification* takes precedence over direct manipulation of computer memory and executable *instructions*. This is a bit of an oversimplification, as FP offers quite a bit more benefits that simply allowing a programmer to program *differently*.
@@ -91,3 +94,5 @@ const x y = x%}
 **HINT**: Look back at exercise 1. What does the variable `a` mean in the type declaration for `quicksort`?
 
 If you don't see any errors, chances are, you added the correct types!
+
+{%pagination #chapter1%}

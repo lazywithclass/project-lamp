@@ -1,6 +1,5 @@
 ---
 layout: page
-title: Chapter 3 - Continuing with Style
 permalink: /chapter3/
 custom_js:
 - jquery.min
@@ -10,6 +9,11 @@ custom_js:
 - bundle
 - index
 ---
+
+## Chapter 3 - Continuing with Style
+
+{%pagination chapter2#%}
+
 In this chapter, we introduce *continuations* and writing functions in *continuation passing style* (CPS). We also discuss the reasons for writing CPSed programs.
 
 ### 1. Continuation Passing Style
@@ -252,3 +256,5 @@ FC (makeClosure "y" (Var "x") (Ext { name: "x", val: (NC 6.0) } EmptyEnv))
 
 #### i. CPS Basic Functions
 #### ii. From CPS to State Machine
+
+{%pagination chapter2#%}

@@ -1,6 +1,5 @@
 ---
 layout: page
-title: Chapter 2 - Little Languages
 permalink: /chapter2/
 custom_js:
 - jquery.min
@@ -10,6 +9,11 @@ custom_js:
 - bundle
 - index
 ---
+
+{%pagination chapter1#chapter3%}
+
+## Chapter 2 - Little Languages
+
 In this chapter, we implement a basic interpreter in PureScript for a small programming language. This helps expand on the concepts we covered in the previous chapter while also providing a substantial example of writing code in functional languages.
 
 ### 1. The Big Picture
@@ -437,3 +441,5 @@ and obtain more detailed answers:
 ```haskell
 Function from y returns x, with context {x: (ND 6.0)}
 ```
+
+{%pagination chapter1#chapter3%}

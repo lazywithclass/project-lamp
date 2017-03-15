@@ -264,9 +264,6 @@ pre {
 /**
  * Page content
  */
-.page-content {
-  padding: 30px 0; }
-
 .page-heading {
   font-size: 20px; }
 
@@ -482,4 +479,15 @@ pre {
 .js-go,.js-test {
   height: 24px;
   vertical-align: top;
+}
+
+.pagination {
+  padding: 15px;
+  text-align: right;
+}
+.pagination a {
+  cursor: pointer;
+}
+.pagination a.hidden {
+  display: none;
 }
