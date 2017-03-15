@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 permalink: /chapter1/
 custom_js:
 - jquery.min
@@ -12,7 +12,7 @@ custom_js:
 
 {%pagination intro#chapter2%}
 
-## Chapter 1 - First Steps
+# Chapter 1 - First Steps
 
 In this chapter, we introduce the foundation of all functional languages and their related concepts, we talk about types and their relationship with functional languages, and end with a discussion on the different ways that one can write basic functional programs.
 

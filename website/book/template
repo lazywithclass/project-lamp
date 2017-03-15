@@ -1,6 +1,5 @@
 ---
-layout: page
-title: 
+layout: default
 permalink: 
 custom_js:
 - jquery.min
@@ -10,6 +9,11 @@ custom_js:
 - bundle
 - index
 ---
+
+{%pagination PREVCHAPTER#NEXTCHAPTER%}
+
+# CHAPTER TITLE
+
 ### 1.
 #### a.
 ### 2.

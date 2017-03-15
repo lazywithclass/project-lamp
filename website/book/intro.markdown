@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 permalink: /introduction/
 custom_js:
 - jquery.min
@@ -12,7 +12,7 @@ custom_js:
 
 {%pagination #chapter1%}
 
-## Introduction - Starting Out, Nice and Easy
+# Introduction - Starting Out, Nice and Easy
 
 ### 1. Functional Programming?
 Functional Programming (FP) can be thought of as a method of writing computer programs where *specification* takes precedence over direct manipulation of computer memory and executable *instructions*. This is a bit of an oversimplification, as FP offers quite a bit more benefits that simply allowing a programmer to program *differently*.

@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 permalink: /chapter3/
 custom_js:
 - jquery.min
@@ -10,67 +10,75 @@ custom_js:
 - index
 ---
 
-## Chapter 3 - Continuing with Style
-
 {%pagination chapter2#%}
+
+# Chapter 3 - Continuing w/ Style
 
 In this chapter, we introduce *continuations* and writing functions in *continuation passing style* (CPS). We also discuss the reasons for writing CPSed programs.
 
 ### 1. Continuation Passing Style
-In essence, a continuation is a higher-order function that abstracts over an extended content for performing a certain computation. This is much more easily explained in a functional language, since we can treat continuations simply as a special form of accumulator, where the value being "accumulated" is a function.
+In essence, a continuation is a higher-order function that abstracts over an extended content for performing a certain computation. This is much more easily explained in a functional language, since we can treat continuations simply as a special form of accumulator, where the value being "accumulated" is a function. Doing this also has the added benefit of providing control over program evaluation.
 
 #### a. Callback Everyday -- Continuations
 <!-- Convert a few basic functions -->
 As we mentioned, a continuation is a higher-order function and writing in CPS is synonymous with using a function as an accumulator.
 
-With this in mind, let's take a few steps back and recall writing in APS. In Chapter 1, we described how to convert a generally recursive definition into one that incorporates APS. To reiterate, here is the definition of `sum` written using general recursion:
+With this in mind, let's take a few steps back and recall writing in APS. In Chapter 1, we described how to convert a generally recursive definition into one that uses APS. To reiterate, here is the definition of `sum` written using general recursion:
 ```haskell
 sum :: List Int -> Int
 sum Nil    = 0
 sum (x:xs) = x + (sum xs)
 ```
-To convert `sum` into its APS equivalent, we add a parameter, representing an accumulated value, update its value during every recursive step, then return it once the base case is reached.
+To convert `sum` to its APS equivalent, we add a accumulator parameter, update its value during the recursive step, then return it once the base case is reached.
 ```haskell
 sum :: List Int -> Int
 sum xs = sumAcc xs 0
-  where sumAcc Nil acc    = acc
-        sumAcc (x:xs) acc = sumAcc (acc + x) xs
+  where
+    sumAcc :: List Int -> Int -> Int
+    sumAcc Nil acc    = acc
+    sumAcc (x:xs) acc =
+      sumAcc xs (acc + x)
 ```
-From here, translating an APSed program to a CPSed equivalent requires that we abstract over the accumulator by replacing it with a higher-order function, which gives us the following preliminary type definition for the CPS equivalent of `sum`, `sumCPS`:
+From here, translating an APSed program to a CPSed equivalent requires that we abstract over the accumulator by replacing it with a higher-order function. In this case, `sumAcc` has two arguments, a `List Int` and an `Int`, where the second is the accumulator. Replacing this value with a higher-order function means that we have the following type for `sumCPS`:
 ```haskell
 sumCPS :: List Int -> (... -> ...) -> Int
 ```
+Let's complete this type declaration and fill in the two `...` with the appropriate types. To determine these types, we can reason about:
 
-To derive the appropriate type for this function, we must do the following:
+1. The type of the continuation's parameter.
+2. The return type of the continuation.
 
-1. Determine the type of the final return value.
-2. Determine the type of the recursive expression.
-
-In this example, we know that `sum` should return an `Int`. Thus, we know the type of our continuation should *also* return an `Int`.
+`(1)` and `(2)` are synonymous with the type of `acc` in `sumAcc`. If we inspect the initial value of `acc` in the context of `sum`, we discover that it's initialized to the value `0`, an `Int`. This means that the first `...` is `Int`.
 ```haskell
-sumCPS :: List Int -> (... -> Int) -> Int
+sumCPS :: List Int -> (Int -> ...) -> Int
 ```
-Next, we need to determine the type of continuation's parameter, which we can determine by inspecting the type of the value we return for `sum`'s recursive case. In this case, the type is `Int`.
+The second `...` is the type of `acc` after being updated during each recursive case. During the recursive case, given that we peform addition on `acc`, it should come with no surprise that the type is *also* `Int`.
 ```haskell
 sumCPS :: List Int -> (Int -> Int) -> Int
 ```
-We then implement this function as follows:
+Declaring this type dictates the definition of `sumCPS` in two ways:
+
+1. We must apply the continuation to our base case, `0`.
+2. We must extend the continuation during the recursive case.
+
+For `(1)`, we apply a continuation to the value `0`, the original return value of `sum`. For `(2)`, we recur normally, while treating our continuation as a form of accumulator. Here, we are **not** performing the addition to a set value like in `sumAcc` but are, instead, creating a function that performs the addition under the context of some other computation, `k`. Thus, extending a continuation is synonymous with defining how `sum` *continues* with its *next* computation.
 {% repl_only sumcps#sum :: List Int -> Int
 sum xs = sumCPS xs id
-  where sumCPS Nil k    = k 0
-        sumCPS (x:xs) k =
-          sumCPS xs (\acc -> k (acc + x))%}
+  where
+    sumCPS :: List Int -> (Int -> Int) -> Int
+    sumCPS Nil k    = -- (1)
+      k 0 
+    sumCPS (x:xs) k = -- (2)
+      sumCPS xs (\acc -> k (acc + x))%}
 
-<!-- todo: explain this and id as base -->
-
-with input List `(1:2:3:Nil)`
+To further illustrate the behavior of this CPSed function, we include a trace of the `List` and continuation value in computing `(sum (1:2:3:Nil))`:
 ```haskell
--- Recursive cases: Continuations are extended
-id
-(\acc -> id (acc + 1))
-(\acc -> (\acc -> id (acc + 1)) (acc + 2))
-(\acc -> (\acc -> (\acc -> id (acc + 1)) (acc + 2)) (acc + 3))
--- Base case: Continuations are applied
+-- Recursive case => Continuations are extended
+(1:2:3:Nil) id
+(2:3:Nil) (\acc -> id (acc + 1))
+(3:Nil) (\acc -> (\acc -> id (acc + 1)) (acc + 2))
+Nil (\acc -> (\acc -> (\acc -> id (acc + 1)) (acc + 2)) (acc + 3))
+-- Base case is reached => Continuations are applied
 (\acc -> (\acc -> (\acc -> id (acc + 1)) (acc + 2)) (acc + 3)) 0
 (\acc -> (\acc -> id (acc + 1)) (acc + 2)) 3
 (\acc -> id (acc + 1)) 5
@@ -80,11 +88,70 @@ id 6
 6
 ```
 
-#### b. One Step at a Time -- Control Flow
+**Aside:** `id` is our old friend the identity function. Since continuations are functions, to properly model the behavior of an accumulator, their base value must be `id`.
+
+#### b. One Step at a Time -- Control Flow and Tail Calls
 <!-- explicit order of operations -->
 <!-- near stateful computation -->
 
-#### c. If You Squint Your Eyes -- Tail Calls
+The primary benefit of writing in CPS is the control over a function's evaluation order. To illustrate this point, we need a more complex example than `sum`. Let's bring back `append` and `rev` from Chapter 1:
+```haskell
+append :: forall a. List a -> List a -> List a
+append Nil ys    = ys
+append (x:xs) ys = x:(append xs ys)
+
+rev :: forall a. List a -> List a
+rev Nil    = Nil
+rev (x:xs) = append (rev xs) (x:Nil)
+```
+Let's CPS both of these functions. First, let's determine the appropriate types for their CPSed equivalents.
+
+Since neither of these function are written in APS, we must add a continuation parameter to both of their type declarations:
+```haskell
+append :: forall a. List a -> List a -> (List a -> List a) -> List a
+rev :: forall a. List a -> (List a -> List a) -> List a
+```
+In both cases, the type of the continuation parameter is `(List a -> List a)`, since both functions return a `List a`. Let's start by implementing the CPSed version of `append`.
+```haskell
+append Nil ys k    = ?basecase
+append (x:xs) ys k = ?recur
+```
+In the original definition of `append`, we return `ys` in the event that `xs` is `Nil`. In the CPSed version, we return `ys` by applying `k` to it:
+```haskell
+append Nil ys k = k $ ys
+```
+In the recursive case, we extend our continuation to perform the `:` operation.
+```haskell
+append (x:xs) ys k =
+  append xs ys (\ans -> k (x:ans))
+```
+On the other hand, implementing `rev` requires that we perform certain computations before others. This is a quite bit different from the general functional style of writing code. Since the base case of `rev` is straightforward to implement, let's focus on its recursive case:
+```haskell
+rev (x:xs) = append (rev xs) (x:Nil)
+```
+Here, we are calling `append` *and* `rev`. The question is: *Which one happens first?* The natural answer would be the call to `rev` happens first. In general, this is correct, but, in reality, writing code in the general functional style allows us to not have to reason about which call happens first! In fact, there isn't actually a way of determining which call happens first unless one where to inspect the compiled version of the code!
+
+In CPSing `rev`, we gain the ability to choose which call happens first.
+{% repl_only revCps#append :: forall a. List a -> List a ->
+          (List a -> List a) -> List a
+append Nil ys k    =
+  k ys
+append (x:xs) ys k =
+  append xs ys (\ans -> k (x:ans))
+  
+rev :: forall a. List a ->
+       (List a -> List a) -> List a
+rev Nil k    =
+  k Nil
+rev (x:xs) k =
+  rev xs $ \xs' ->
+  append xs' (x:Nil) $ \ans ->
+  k ans%}
+**NOTE:** Don't forget to use `id` when calling these functions!
+
+Doing this, we discover that the call to `rev` *must* happen first! This is because the call to `append` depends on its value, which is made clearer when written in CPS style. For example, it is impossible to evaluate the call to `append` without having the reversed list `xs'` first.
+
+<!-- #### c. If You Squint Your Eyes --  -->
 <!-- calling in tail position -->
 <!-- graze on what writing in this way looks like -->
 
@@ -255,6 +322,15 @@ FC (makeClosure "y" (Var "x") (Ext { name: "x", val: (NC 6.0) } EmptyEnv))
 ## Exercises:
 
 #### i. CPS Basic Functions
+
+* Define `foldList` using CPS and derive its type.
+{% repl_only foldList#foldList base build Nil return = 
+    return base
+foldList base build (x:xs) return =
+    build x base $ \base' ->
+    foldList base' build xs $ \ans ->
+    return ans%}
+
 #### ii. From CPS to State Machine
 
 {%pagination chapter2#%}

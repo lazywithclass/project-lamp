@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 permalink: /chapter2/
 custom_js:
 - jquery.min
@@ -12,7 +12,7 @@ custom_js:
 
 {%pagination chapter1#chapter3%}
 
-## Chapter 2 - Little Languages
+# Chapter 2 - Little Languages
 
 In this chapter, we implement a basic interpreter in PureScript for a small programming language. This helps expand on the concepts we covered in the previous chapter while also providing a substantial example of writing code in functional languages.
 
