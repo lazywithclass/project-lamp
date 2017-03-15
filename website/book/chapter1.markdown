@@ -10,7 +10,7 @@ custom_js:
 - index
 ---
 
-{%pagination intro#chapter2%}
+{%pagination introduction#chapter2%}
 
 # Chapter 1 - First Steps
 
