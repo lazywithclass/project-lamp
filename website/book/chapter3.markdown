@@ -166,7 +166,7 @@ rev (x:xs) k =
   append xs' (x:Nil) $ \ans ->
   k ans
 ```
-Then, let's add a bit of whitespace, η-exand and rename our continuation variable, `k`:
+Then, let's add a bit of whitespace, η-expand and rename our continuation variable, `k`:
 ```haskell
 rev (x:xs) Nil return =
   rev xs             $ \xs' ->
