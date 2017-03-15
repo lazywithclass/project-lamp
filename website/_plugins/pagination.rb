@@ -14,9 +14,9 @@ module Jekyll
     def render(context)
       [
         '<div class="pagination">',
-        "<a class=\"#{@left == '' ? 'hidden' : ''}\" href=\"http://project-lamp.org/#{@left}\">◀</a>",
-        ' <a href="http://project-lamp.org/">◆</a> ',
-        "<a class=\"#{@right == '' ? 'hidden' : ''}\" href=\"http://project-lamp.org/#{@right}\">▶</a>",
+        "<a class=\"#{@left == '' ? 'hidden' : ''}\" href=\"/#{@left}\">◀</a>",
+        ' <a href="/">◆</a> ',
+        "<a class=\"#{@right == '' ? 'hidden' : ''}\" href=\"/#{@right}\">▶</a>",
         '</div>'
       ].join('')
     end
