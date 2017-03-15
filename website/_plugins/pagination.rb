@@ -7,8 +7,8 @@ module Jekyll
     def initialize(tag_name, text, tokens)
       super
       @text   = text.split('#')
-      @left   = @text[0]
-      @right  = @text[1]
+      @left   = @text[0] || ''
+      @right  = @text[1] || ''
     end
 
     def render(context)
