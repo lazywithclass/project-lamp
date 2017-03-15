@@ -90,7 +90,7 @@ id 6
 
 **Aside:** `id` is our old friend the identity function. Since continuations are functions, to properly model the behavior of an accumulator, their base value must be `id`.
 
-### b. One Step at a Time -- Control Flow and Tail Calls
+### b. One Step at a Time -- Control Flow
 <!-- explicit order of operations -->
 <!-- near stateful computation -->
 
@@ -125,13 +125,18 @@ In the recursive case, we extend our continuation to perform the `:` operation.
 append (x:xs) ys k =
   append xs ys (\ans -> k (x:ans))
 ```
+Next, we implement the CPSed version of `rev`:
+```haskell
+rev Nil k    = ?basecase
+rev (x:xs) k = ?recur
+```
 On the other hand, implementing `rev` requires that we perform certain computations before others. This is a quite bit different from the general functional style of writing code. Since the base case of `rev` is straightforward to implement, let's focus on its recursive case:
 ```haskell
 rev (x:xs) = append (rev xs) (x:Nil)
 ```
-Here, we are calling `append` *and* `rev`. The question is: *Which one happens first?* The natural answer would be the call to `rev` happens first. In general, this is correct, but, in reality, writing code in the general functional style allows us to not have to reason about which call happens first! In fact, there isn't actually a way of determining which call happens first unless one where to inspect the compiled version of the code!
+Here, we are calling `append` *and* `rev`. The question is: *Which one happens first?* The natural answer would be that the call to `rev` happens first. In general, this is correct, but writing code in the general functional style provides us the liberty of not having to reason about which call happens first!
 
-In CPSing `rev`, we gain the ability to choose which call happens first.
+In CPSing `rev`, we gain the ability to choose which call happens first. 
 {% repl_only revCps#append :: forall a. List a -> List a ->
           (List a -> List a) -> List a
 append Nil ys k    =
@@ -149,11 +154,43 @@ rev (x:xs) k =
   k ans%}
 **NOTE:** Don't forget to use `id` when calling these functions!
 
-Doing this, we discover that the call to `rev` *must* happen first! This is because the call to `append` depends on its value, which is made clearer when written in CPS style. For example, it is impossible to evaluate the call to `append` without having the reversed list `xs'` first.
+Here, we've implemented `rev` to first evaluate the recursive call to itself. Doing this, we discover that the recursive call to `rev` *must* happen before the call to `append`! This is because `append` depends on the result of the `rev` computation, which is made clearer when written in CPS style. For example, it is impossible to evaluate the call to `append` without first having `xs'`, the reversed list.
 
-<!-- #### c. If You Squint Your Eyes --  -->
-<!-- calling in tail position -->
-<!-- graze on what writing in this way looks like -->
+### c. If You Squint Your Eyes -- Tail Calls
+One might have noticed someting strange about the implementation of fully CPSed functions, especially in the way we've written `append` and `rev` above. This particular *something* is not actually strange at all but instead is one of the other benefits of writing in CPS.
+
+In a CPSed function, every call is a tail call. This is a side-effect of regaining control over the flow of program execution. That is, the execution of each line happens right when we expect them to, just like it would in an imperative language! Let's focus again on the recursive case in `rev`:
+```haskell
+rev (x:xs) k =
+  rev xs $ \xs' ->
+  append xs' (x:Nil) $ \ans ->
+  k ans
+```
+Then, let's add a bit of whitespace, η-exand and rename our continuation variable, `k`:
+```haskell
+rev (x:xs) Nil return =
+  rev xs             $ \xs' ->
+  append xs' (x:Nil) $ \ans ->
+  return ans
+```
+*Whoa*. Doesn't that look familiar?
+
+In this maner, looking at a CPS function feels almost analogous to looking at an implementation in an imperative language. That is, in the recursive case of `rev`, we *know* that the following happens:
+
+1. The call to `rev` is executed.
+2. Once `(1)` finishes, the current continuation is applied to its result.
+3. From `(2)`, the variable `xs'` holds the value of `(rev xs)`.
+4. After the continuation is applied in `(2)`, the code continues with the next line.
+5. Once `(4)` finishes, the current continuation is applied to its result.
+6. From `(5)`, the variable `ans` holds the value of `(append xs' (x:Nil))`.
+7. After the continuation is applied to `(4)`, the code continues with the next line.
+8. Finally, applying `return` to `ans` results in program exit.
+
+**NOTE:** Just like how it was earlier, the last line of the recursive call to `rev` should be:
+```haskell
+append xs' (x:Nil) return
+```
+In this case, we η-expanded to appeal to the more familiar structure of imperative code.
 
 ## 2. CPS the Interpreter -- Implementation
 <!-- interpreter goes here -->
@@ -323,14 +360,21 @@ FC (makeClosure "y" (Var "x") (Ext { name: "x", val: (NC 6.0) } EmptyEnv))
 
 ### i. CPS Basic Functions
 
+* Define `map` using CPS and derive its type.
+{% repl_only mapCPS#map f Nil return    =
+  return Nil
+map f (x:xs) return =
+  f x $ \x' ->
+  map f xs $ \xs' ->
+  return $ x':xs'%}
+* Define `filter` using CPS and derive its type.
 * Define `foldList` using CPS and derive its type.
 {% repl_only foldList#foldList base build Nil return = 
-    return base
+    undefined
 foldList base build (x:xs) return =
-    build x base $ \base' ->
-    foldList base' build xs $ \ans ->
-    return ans%}
+    undefined%}
 
-### ii. From CPS to State Machine
+
+### ii. Bonus: A State Machine
 
 {%pagination chapter2#%}
