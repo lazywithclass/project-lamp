@@ -442,4 +442,4 @@ factFold n = undefined%}
 factFold five
 ```
 
-{%pagination intro#chapter2%}
+{%pagination introduction#chapter2%}
