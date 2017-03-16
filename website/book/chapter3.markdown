@@ -37,7 +37,7 @@ sum xs = sumAcc xs 0
     sumAcc :: List Int -> Int -> Int
     sumAcc Nil acc    = acc
     sumAcc (x:xs) acc =
-      sumAcc xs (acc + x)
+      sumAcc xs (x + acc)
 ```
 From here, translating an APSed program to a CPSed equivalent requires that we abstract over the accumulator by replacing it with a higher-order function. In this case, `sumAcc` has two arguments, a `List Int` and an `Int`, where the second is the accumulator. Replacing this value with a higher-order function means that we have the following type for `sumCPS`:
 ```haskell
@@ -69,19 +69,19 @@ sum xs = sumCPS xs id
     sumCPS Nil k    = -- (1)
       k 0 
     sumCPS (x:xs) k = -- (2)
-      sumCPS xs (k <<< ((+) x))%}
+      sumCPS xs ((+) x >>> k)%}
 
 To further illustrate the behavior of this CPSed function, we include a trace of the `List` and continuation value in computing `(sum (1:2:3:Nil))`:
 ```haskell
 -- Recursive case => Continuations are extended
 (1:2:3:Nil) id
-(2:3:Nil) (id <<< ((+) 1))
-(3:Nil) (id <<< ((+) 1) <<< ((+) 2))
-Nil (id <<< ((+) 1) <<< ((+) 2) <<< ((+) 3))
+(2:3:Nil) ((+) 1 >>> id)
+(3:Nil) ((+) 2 >>> (+) 1 >>> id)
+Nil ((+) 3 >>> (+) 2 >>> (+) 1 >>> id)
 -- Base case is reached => Continuations are applied
-(id <<< ((+) 1) <<< ((+) 2) <<< ((+) 3)) 0
-(id <<< ((+) 1) <<< ((+) 2)) 3
-(id <<< ((+) 1)) 5
+((+) 3 >>> (+) 2 >>> (+) 1 >>> id) 0
+((+) 2 >>> (+) 1 >>> id) 3
+((+) 1 >>> id) 5
 id 6
 -- Final continuation is applied
 id 6
@@ -123,7 +123,7 @@ append Nil ys k = k $ ys
 In the recursive case, we extend our continuation to perform the `:` operation.
 ```haskell
 append (x:xs) ys k =
-  append xs ys (k <<< ((:) x))
+  append xs ys ((:) x >>> k)
 ```
 Next, we implement the CPSed version of `rev`:
 ```haskell
@@ -142,7 +142,7 @@ In CPSing `rev`, we gain the ability to choose which call happens first.
 append Nil ys k    =
   k ys
 append (x:xs) ys k =
-  append xs ys (k <<< ((:) x))
+  append xs ys ((:) x >>> k)
   
 rev :: forall a. List a ->
        (List a -> List a) -> List a
