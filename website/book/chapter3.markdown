@@ -625,22 +625,38 @@ fibC :: Int -> (Int -> Int) -> Int
 fibC x k | x == 0 || x == 1 = undefined
          | otherwise        = undefined%}
 		  
-Too easy? How about *these*:
+Too *easy*? How about *these*:
 
-* Define `map` using CPS and derive its type.
-{% repl_only mapCPS#map f Nil return    =
+* Define a CPSed `map` function and derive its type.
+
+{% repl_only mapCPS#map :: forall a b. (a -> b) -> List a -> List b
+map f Nil    = Nil
+map f (x:xs) = f x : map f xs 
+
+mapC f Nil return    =
   undefined
-map f (x:xs) return =
+mapC f (x:xs) return =
   undefined%}
-* Define `filter` using CPS and derive its type.
-{% repl_only filterCPS#filter f Nil return =
+
+* Define a CPSed `filter` function and derive its type.
+{% repl_only filterCPS#filter :: forall a. (a -> Boolean) -> List a -> List a
+filter f Nil    = Nil
+filter f (x:xs) | f x       = x : filter f xs
+                | otherwise = filter f xs
+
+filterC f Nil return =
   undefined
-filter f (x:xs) return =
+filterC f (x:xs) return =
   undefined%}
-* Define `foldList` using CPS and derive its type.
-{% repl_only foldList#foldList base build Nil return = 
+
+* Define a CPSed `foldList` function and derive its type.
+{% repl_only foldList#foldList :: forall a b. b -> (a -> b -> b) -> List a -> b
+foldList base build Nil    = base
+foldList base build (x:xs) = foldList (build x base) build xs
+
+foldListC base build Nil return = 
     undefined
-foldList base build (x:xs) return =
+foldListC base build (x:xs) return =
     undefined%}
 
 
