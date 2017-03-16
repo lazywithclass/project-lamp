@@ -69,19 +69,19 @@ sum xs = sumCPS xs id
     sumCPS Nil k    = -- (1)
       k 0 
     sumCPS (x:xs) k = -- (2)
-      sumCPS xs (\acc -> k (acc + x))%}
+      sumCPS xs (k <<< ((+) x))%}
 
 To further illustrate the behavior of this CPSed function, we include a trace of the `List` and continuation value in computing `(sum (1:2:3:Nil))`:
 ```haskell
 -- Recursive case => Continuations are extended
 (1:2:3:Nil) id
-(2:3:Nil) (\acc -> id (acc + 1))
-(3:Nil) (\acc -> (\acc -> id (acc + 1)) (acc + 2))
-Nil (\acc -> (\acc -> (\acc -> id (acc + 1)) (acc + 2)) (acc + 3))
+(2:3:Nil) (id <<< ((+) 1))
+(3:Nil) (id <<< ((+) 1) <<< ((+) 2))
+Nil (id <<< ((+) 1) <<< ((+) 2) <<< ((+) 3))
 -- Base case is reached => Continuations are applied
-(\acc -> (\acc -> (\acc -> id (acc + 1)) (acc + 2)) (acc + 3)) 0
-(\acc -> (\acc -> id (acc + 1)) (acc + 2)) 3
-(\acc -> id (acc + 1)) 5
+(id <<< ((+) 1) <<< ((+) 2) <<< ((+) 3)) 0
+(id <<< ((+) 1) <<< ((+) 2)) 3
+(id <<< ((+) 1)) 5
 id 6
 -- Final continuation is applied
 id 6
