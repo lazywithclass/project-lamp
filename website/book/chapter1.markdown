@@ -81,8 +81,11 @@ Let's define a function that applies that takes two functions, `f` and `g`, then
 ```haskell
 compApp f g a = f $ g a
 ```
-With η-reduction, we're able to simplify the definition of `compApp`. In PureScript, functions can be *composed* using the `<<<` or `>>>` operators. These signify left and right function composition. That is, `f <<< g` is equivalent to `f $ g`, while `f >>> g` is equivalent to `g $ f`.
-
+With η-reduction, we're able to simplify the definition of `compApp`. In PureScript, functions can be *composed* using the `<<<` or `>>>` operators. These signify left and right function composition.
+```haskell
+f <<< g == \x -> f (g x)
+f >>> g == \x -> g (f x)
+```
 After η-reduction, `compApp` is defined as follows:
 {% repl_only compApp#compApp f g = f <<< g%}
 This works out since the value `f <<< g` returns a function that takes one argument and allows us to remove the variable `a` from both sides of the `=` sign. This is because of the η-reduction rule in the λ-calculus:
