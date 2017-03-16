@@ -193,7 +193,11 @@ append xs' (x:Nil) return
 In this case, we η-expanded to appeal to the more familiar structure of imperative code.
 
 ## 2. CPS the Interpreter -- Implementation
-<!-- interpreter goes here -->
+*We're bringing interpreters back!*
+
+In this section, we'll implement a CPSed interpreter by making changes to `interpD` from Chapter 2. With the complexity of an interpreter, we are able to further illustrate the power of having explicit control over the flow of program evaluation.
+
+We'll start with a few changes in the `Closure` type and the `ValueD` Type:
 {% basic_hidden terms#instance showEnv :: Show a => Show (Env a) where
   show env = show' env true where
     show' EmptyEnv b | b         = "{}"
@@ -240,6 +244,12 @@ data Term = Num Number
           | Var Name
           | Lam Name Term
           | App Term Term
+derive instance eqValueC :: Eq ValueC
+derive instance eqClosure :: Eq Closure
+derive instance eqTerm :: Eq Term
+derive instance eqEnvC :: Eq (Env ValueC)
+makeClosure :: Name -> Term -> Env ValueC -> Closure
+makeClosure n b e = Closure { name : n, body : b, env : e }
 instance showValueC :: Show ValueC where
   show (NC x) = "NC " <> show x-- .n
   show (BC x) = "BC " <> show x-- .b
@@ -256,6 +266,115 @@ data ValueC = NC Number
             | BC Boolean
             | FC Closure%}
 
+Then we'll implement the rest of the interpreter in the same way we did in Chapter 2:
+
+1. Number `Value`d expressions
+2. Boolean and Branching expressions
+3. λ-calculus expressions
+
+Let's begin!
+
+### a. Number Valued Expressions
+Let's recall our previous implementation for number `Value`d expressions:
+```haskell
+interpD _ (Num i)    = ND i
+interpD e (Sub x y)  = ND (calcValueD e (-) x y)
+interpD e (Mul x y)  = ND (calcValueD e (*) x y)
+```
+Here, we defined `calcValue` to handle the special case of `Sub` and `Mul`, which is defined as:
+```haskell
+on :: forall a b c.
+      (b -> b -> c) -> (a -> b) ->
+      a -> a -> c
+on op f x y = f x `op` f y
+
+calcValue :: Env Value -> (Number -> Number -> Number) ->
+             Term -> Term -> Number
+calcValue e op =
+  on op $ \x ->
+  case interp e x of
+    N num -> num
+    _     ->
+      error "arithmetic on non-number"
+```
+`calcValue` also used the function `on` to apply the function that `interp`s to both sub-expressions of `Sub` and `Mul` and pattern matches on their `(N i)` case.
+
+Before we CPS these functions for our new interpreter, let's take the time to reason about what happens in each of them and the order that they should occur. 
+
+For `on`:
+1. A function, `f`, is applied to both `x` and `y`.
+2. An `op` function is applied to the results of `(1)`.
+3. The result of `(2)` is returned.
+
+Thus, to CPS `on`, we must first apply an `f` to an `x` and `y` *before* returning the result of applying an `op` to their results. This gives us:
+```haskell
+onC op f x y return =
+  f x $ \x ->
+  f y $ \y ->
+  return $ x `op` y
+```
+We'll get back to properly declaring a type for `onC`. First, let's take a look at what `calcValue` does:
+
+1. Using `on`, two `Term`s are passed to a function.
+2. This function takes `Term`, passes it to `interp`, determines whether or not its `Value` represents a number.
+3. If the `Value` is a number, the number is returned.
+4. Otherwise, an error is raised.
+
+This gives us:
+```haskell
+calcValueC e op =
+  onC op $ \a return ->
+  interpC e a $ \a ->
+  case a of
+    NC num -> return num
+    _      ->
+      error "arithmetic on non-number"
+```
+Providing the proper type for `calcValueC` is rather straightforward since its specialized to only handle certain inputs. Originally, `calcValue` takes an `Env ValueC`, an `op` function, two `Term`s and returns `Number`. In this case, however, when we properly CPS this function, it returns a `ValueC`!
+```haskell
+calcValueC :: Env ValueC -> (Number -> Number -> Number) ->
+              Term -> Term -> (Number -> ValueC) -> ValueC
+```
+After we CPSed `calcValue`, we revealed that its return value depends on the result of a call to `interp`. This dicates the type of the continuation passed to `calcValue`, which consequently affects the type of the continuation in `onC`.
+
+We held off providing the type declaration for `onC` due to its complexity. Given that `on` is polymorphic, its type declaration must provide the correct details for the context it can be used in. This is why, in general, the practice of CPSing polymorphic functions is a bit more complex than functions with concrete return types.
+
+To properly derive the type of `onC`, let's recall its non-CPSed type declaration:
+```haskell
+on :: forall a b c.
+      (b -> b -> c) -> (a -> b) ->
+      a -> a -> c
+```
+From its type definition, it is clear that `on` function returns an element of type `c`. When we derive the type of CPSed functions similar to `onC`, we must do the following:
+
+1. Add an additional polymorphic variable, representing the function's return type.
+2. Every CPSed function argument inherits this return type.
+3. The function's return type is changed in the same way as `(2)`.
+
+For `(1)`, let's add the type variable `r` to represent the return type of `onC`.
+```haskell
+forall a b c r.
+(b -> b -> c) -> (a -> b) ->
+a -> a -> c
+```
+Then, with `(2)`, we must determine which function arguments passed to `onC` are CPSed. In this case, `onC` itself is a CPSed function and `f`, the second function argument, is also CPSed. In the context of our interpreter, since `f` includes a call to our CPSed interpreter, `interpC`, it also must be CPSed. On the other hand, `op` just calls the *non-CPSed* operations of `(*)` and `(-)`.
+
+This means there are two functions types that need to inherit the return type `r`:
+```haskell
+f :: a -> b
+on :: (b -> b -> c) -> (a -> b) -> a -> a -> c
+```
+First, let's fix the type for `f`. Since `f` originally returned a `b`, this means that its CPSed equivalent will have a continuation of type `(b -> r)` and return an `r`, which gives us its new type:
+```haskell
+f :: a -> (b -> r) -> r
+```
+Lastly, we need to change the type for the entire function. Since `on` originally returned a `c`, this means that its CPSed equivalent will have a continuation of type `(c -> r)` and return an `r`.
+```haskell
+onC :: forall a b c r.
+       (b -> b -> c) -> (a -> (b -> r) -> r) ->
+       a -> a -> (c -> r) -> r
+```
+This completes the definitions for `onC` and `calcValueC`:
 {% basic cpshelpers#onC :: forall a b c r.
        (b -> b -> c) -> (a -> (b -> r) -> r) ->
        a -> a -> (c -> r) -> r
@@ -274,36 +393,136 @@ calcValueC e op =
     _      ->
       error "arithmetic on non-number"%}
 
-{% basic closfuns#applyClosure :: Closure -> ValueC -> (ValueC -> ValueC) -> ValueC
-applyClosure (Closure clos) rat =
-  interpC (extend clos.name rat clos.env) clos.body
+We then use `calcValue` to define the following cases in our interpreter:
+```haskell
+interpC _ (Num i) return    =
+  return $ NC i
+interpC e (Sub x y) return  =
+  calcValueC e (-) x y $
+  return <<< NC
+interpC e (Mul x y) return  =
+  calcValueC e (*) x y $
+  return <<< NC
+```
 
-makeClosure :: Name -> Term -> Env ValueC -> Closure
-makeClosure n b e = Closure { name : n, body : b, env : e }%}
+### b. Boolean and Branching Expressions
+Next, let's handle the cases for `IsZero` and `If`. In `interpD`, these cases were defined as follows:
+```haskell
+interpD e (IsZero x) =
+  BD $ interpD e x == ND 0.0 
+interpD e (If x y z) =
+  case interpD e x of
+    BD b | b         -> interpD e y
+         | otherwise -> interpD e z
+    _    -> interpD e y
+```
+Let's use the same strategy we employed in defining the cases for number `Value`d expressions for the above.
+
+First, let's reason about what happens in each case:
+
+For `IsZero`:
+1. `interp` the sub-expression `x`.
+2. Determine whether the result of `(1)` is the representation of the value `0`.
+3. Wrap the result of `(2)` with the `Boolean` `Value` constructor.
+4. The result of `(3)` is returned.
+
+For `If`:
+1. `interp` the sub-expression `x`.
+2. Determine the truthiness of the result of `(1)`.
+3. `interp` the appropriate sub-expression (`y` or `z`).
+
+Which gives us the following:
+```haskell
+interpC e (IsZero x) return =
+  interpC e x $
+  return <<< BC <<< ((==) $ NC 0.0)
+interpC e (If x y z) return =
+  interpC e x $ \x ->
+  case x of
+    BC boo
+      | boo       -> interpC e y return
+      | otherwise -> interpC e z return
+    _ -> interpC e y return
+```
+
+### c. λ-calculus Expressions
+*And then there were three.*
+
+To compare, let's recall how λ-expressions were handled by `interpD`:
+```haskell
+interpD e (Var n)   = lookUp e n
+interpD e (Lam n b) = FD $ makeClosure n b e
+interpD e (App l r) = case interpD e l of
+  FD foo -> applyClosure foo (interpD e r)
+  _      -> error "applied non function value"
+```
+Let's start with the `Var` case. Here, `lookUp` is *not* a CPSed function, so we can simply return its result.
+```haskell
+interpC e (Var x) return   =
+  return $ lookUp e x
+```
+If we had CPSed `lookUp`, we would be required to first evalaute the call to `lookUp`, then return its result, which would look like this:
+```haskell
+lookUp e x return
+```
+
+Next, let's implement the case for `Lam` expressions. In `interpD`, we used `makeClosure` to create a `Closure`, then wrapped it in the `FD` constructor. For `interpC`, we've chosen *not* to CPS `makeClosure`, thus we simply return the result of applying `FC` to a call to `makeClosure`:
+```haskell
+interpC e (Lam n b) return =
+  return $ FC (makeClosure n b e)
+```
+
+Lastly, let's implement the case for `App` expressions. In `interpD`, this case is a bit more complex than the cases for `Var` and `Lam`. For the `App` case, the following occurs:
+
+1. `interp` the sub-expression `l`.
+2. Determine whether the result of `(1)` is a function value or not.
+3. In the event that `(1)` is a function, `interp` the sub-expression `r`. Otherwise, raise an error.
+4. When `(3)` suceeds, the value of `(1)` and `(3)` are passed to `applyClosure`.
+
+Before we can CPS the case for `App`, we need to determine whether or not `applyClosure` should be a CPSed function or not. With it is original implementation:
+```haskell
+applyClosure :: Closure -> ValueD -> ValueD
+applyClosure (Closure clos) val =
+  interpD (extend clos.name val clos.env) clos.body
+```
+We discover that `applyClosure` calls an `interp` function. Since our `interp` function is CPSed, `applyClosure` must also be CPSed. Luckily, this function is rather straightforward to implement. We just add a continuation parameter, then thanks to η-reduction, the new `applyClosure` looks almost exactly the same! This is because the call to `interp` in `applyClosure` is *already* a tail-call.
+
+{% basic closfuns#applyClosure :: Closure -> ValueC -> (ValueC -> ValueC) -> ValueC
+applyClosure (Closure clos) val =
+  interpC (extend clos.name val clos.env) clos.body%}
+
+We then implement the `App` case as described above:
+```haskell
+interpC e (App l r) return =
+  interpC e l $ \l ->
+  case l of
+    FC foo ->
+      interpC e r $ \val ->
+      applyClosure foo val return
+    _      -> error "applied non-function value"
+```
+
+*And that's all, folks!* We've successfully CPSed our interpreter!
 
 {% repl_only interpC#interpC :: Env ValueC -> Term -> (ValueC -> ValueC) -> ValueC
 interpC _ (Num i) return    =
   return $ NC i
 interpC e (Sub x y) return  =
-  calcValueC e (-) x y $ \r ->
-  return $ NC r
+  calcValueC e (-) x y $
+  return <<< NC
 interpC e (Mul x y) return  =
-  calcValueC e (*) x y $ \r ->
-  return $ NC r
+  calcValueC e (*) x y $
+  return <<< NC
 interpC e (IsZero x) return =
-  interpC e x $ \x ->
-  return <<< BC $
-  case x of
-    NC n -> n == 0.0
-    _    -> false
+  interpC e x $
+  return <<< BC <<< ((==) $ NC 0.0)
 interpC e (If x y z) return =
   interpC e x $ \x ->
   case x of
-    BC bool ->
-      if bool
-      then interpC e y return
-      else interpC e z return
-    _       -> interpC e y return
+    BC boo
+      | boo       -> interpC e y return
+      | otherwise -> interpC e z return
+    _ -> interpC e y return
 interpC e (Var x) return   =
   return $ lookUp e x
 interpC e (Lam n b) return =
@@ -315,6 +534,13 @@ interpC e (App l r) return =
       interpC e r $ \val ->
       applyClosure foo val return
     _      -> error "applied non-function value"%}
+
+One should be able to use this interpreter on every example `Term` from Chapter 2. Just remember to pass it an empty continuation in addition to its regular arguments!
+
+We include a sample trace for evaluating the `Term`:
+```haskell
+(App (Lam "x" (Lam "y" (Var "x"))) (Num 6.0))
+```
 
 ```haskell
 interpC EmptyEnv (App (Lam "x" (Lam "y" (Var "x"))) (Num 6.0)) id
@@ -334,40 +560,83 @@ interpC EmptyEnv (Lam "x" (Lam "y" (Var "x"))) $ \l ->
     _      -> error "applied non-function value" $ 
 FC (makeClosure "x" (Lam "y" (Var "x")) EmptyEnv)
 ==
-case FC (Closure { name: "x", body: (Lam "y" (Var "x")), env: EmptyEnv}) of
+case FC (Closure {name:"x",body:(Lam "y" (Var "x")),env:EmptyEnv}) of
     FC foo ->
       interpC EmptyEnv (Num 6.0) $ \val ->
       applyClosure foo val id
     _      -> error "applied non-function value"
 ==
 interpC EmptyEnv (Num 6.0) $ \val ->
-applyClosure (Closure { name: "x", body: (Lam "y" (Var "x")), env: EmptyEnv}) val id
+applyClosure
+  (Closure {name:"x",body:(Lam "y" (Var "x")),env:EmptyEnv})
+  val id
 ==
 \val ->
-  applyClosure (Closure { name: "x", body: (Lam "y" (Var "x")), env: EmptyEnv}) val id $
+applyClosure
+  (Closure {name:"x",body:(Lam "y" (Var "x")),env:EmptyEnv})
+  val id $
 NC 6.0
 ==
-applyClosure (Closure { name: "x", body: (Lam "y" (Var "x")), env: EmptyEnv}) (NC 6.0) id
+applyClosure
+  (Closure {name:"x",body:(Lam "y" (Var "x")),env:EmptyEnv})
+  (NC 6.0) id
 ==
 interpC (extend "x" (NC 6.0) EmptyEnv) (Lam "y" (Var "x")) id
 == 
-id $ FC (makeClosure "y" (Var "x") (Ext { name: "x", val: (NC 6.0) } EmptyEnv))
+id $
+FC (makeClosure "y" (Var "x") (Ext {name:"x",val:(NC 6.0)} EmptyEnv))
 ==
-FC (makeClosure "y" (Var "x") (Ext { name: "x", val: (NC 6.0) } EmptyEnv))
+FC (makeClosure "y" (Var "x") (Ext {name:"x",val:(NC 6.0)} EmptyEnv))
 ```
 
 # Exercises:
 
 ### i. CPS Basic Functions
+* Define a CPSed `fact` function.
+
+{% repl_only factCPS#fact :: Int -> Int
+fact 0 = 1
+fact n = n * fact (n - 1)
+
+factC :: Int -> (Int -> Int) -> Int
+factC 0 k = undefined
+factC n k = undefined%}
+
+* Define a CPSed `ack` function.
+
+{% repl_only ackCPS#ack :: Int -> Int -> Int
+ack 0 n = n + 1
+ack m 0 = ack (m - 1) 1
+ack m n = ack (m - 1) (ack m (n - 1))
+
+ackC :: Int -> Int -> (Int -> Int) -> Int
+ackC 0 n k = undefined
+ackC m 0 k = undefined
+ackC m n k = undefined%}
+
+* Define a CPSed `fib` function.
+
+{% repl_only fibCPS#fib :: Int -> Int
+fib x | x == 0 || x == 1 = x
+      | otherwise =
+        fib (x - 2) + fib (x - 1)
+
+fibC :: Int -> (Int -> Int) -> Int
+fibC x k | x == 0 || x == 1 = undefined
+         | otherwise        = undefined%}
+		  
+Too easy? How about *these*:
 
 * Define `map` using CPS and derive its type.
 {% repl_only mapCPS#map f Nil return    =
-  return Nil
+  undefined
 map f (x:xs) return =
-  f x $ \x' ->
-  map f xs $ \xs' ->
-  return $ x':xs'%}
+  undefined%}
 * Define `filter` using CPS and derive its type.
+{% repl_only filterCPS#filter f Nil return =
+  undefined
+filter f (x:xs) return =
+  undefined%}
 * Define `foldList` using CPS and derive its type.
 {% repl_only foldList#foldList base build Nil return = 
     undefined
@@ -375,6 +644,8 @@ foldList base build (x:xs) return =
     undefined%}
 
 
-### ii. Bonus: A State Machine
+### ii. BONUS: Implement a State Machine
+
+maybe this is too much?
 
 {%pagination chapter2#%}
