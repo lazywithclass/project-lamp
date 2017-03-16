@@ -445,7 +445,7 @@ plusProp m n = m `plusFold` n === m `plus` n#plusFold :: Nat -> Nat -> Nat
 plusFold m n = undefined%}
 * Define `timesFold` that behaves like `times` but uses `foldNat`.
 
-{% testable timesId#timesProp :: Nat -> Nat -> Result
+{% testable timesProp#timesProp :: Nat -> Nat -> Result
 timesProp m n = m `timesFold` n === m `times` n#timesFold :: Nat -> Nat -> Nat
 timesFold m n = undefined%}
 * *BONUS!!* Do the same for `fact`. **HINT**: `Tuple`.
