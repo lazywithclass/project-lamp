@@ -29,7 +29,7 @@ sum :: List Int -> Int
 sum Nil    = 0
 sum (x:xs) = x + (sum xs)
 ```
-To convert `sum` to its APS equivalent, we add a accumulator parameter, update its value during the recursive step, then return it once the base case is reached.
+To convert `sum` to its APS equivalent, we add an accumulator parameter, update its value during the recursive step, then return it once the base case is reached.
 ```haskell
 sum :: List Int -> Int
 sum xs = sumAcc xs 0
@@ -43,7 +43,7 @@ From here, translating an APSed program to a CPSed equivalent requires that we a
 ```haskell
 sumCPS :: List Int -> (... -> ...) -> Int
 ```
-Let's complete this type declaration and fill in the two `...` with the appropriate types. To determine these types, we can reason about:
+Let's complete this type declaration. We need to think about:
 
 1. The type of the continuation's parameter.
 2. The return type of the continuation.
@@ -58,10 +58,10 @@ sumCPS :: List Int -> (Int -> Int) -> Int
 ```
 Declaring this type dictates the definition of `sumCPS` in two ways:
 
-1. We must apply the continuation to our base case, `0`.
+1. Since our continuation is acting as an accumulator, we must apply the continuation to our base case, `0`.
 2. We must extend the continuation during the recursive case.
 
-For `(1)`, we apply a continuation to the value `0`, the original return value of `sum`. For `(2)`, we recur normally, while treating our continuation as a form of accumulator. Here, we are **not** performing the addition to a set value like in `sumAcc` but are, instead, creating a function that performs the addition under the context of some other computation, `k`. Thus, extending a continuation is synonymous with defining how `sum` *continues* with its *next* computation.
+For `(1)`, we apply a continuation to the value `0`, the original return value of `sum`. For `(2)`, we recur normally, while treating our continuation as a form of accumulator. Here, we are **not** performing the addition to a set value like in `sumAcc` but are, instead, creating a function that performs the addition under the context of some other computation, `k`, and is eventually applied to `0` when the base case is reached. Thus, extending a continuation is synonymous with defining how `sum` *continues* with its *next* computation.
 {% repl_only sumcps#sum :: List Int -> Int
 sum xs = sumCPS xs id
   where
@@ -123,7 +123,7 @@ append Nil ys k = k $ ys
 In the recursive case, we extend our continuation to perform the `:` operation.
 ```haskell
 append (x:xs) ys k =
-  append xs ys (\ans -> k (x:ans))
+  append xs ys (k <<< ((:) x))
 ```
 Next, we implement the CPSed version of `rev`:
 ```haskell
@@ -142,7 +142,7 @@ In CPSing `rev`, we gain the ability to choose which call happens first.
 append Nil ys k    =
   k ys
 append (x:xs) ys k =
-  append xs ys (\ans -> k (x:ans))
+  append xs ys (k <<< ((:) x))
   
 rev :: forall a. List a ->
        (List a -> List a) -> List a
