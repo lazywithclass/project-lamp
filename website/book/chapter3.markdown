@@ -186,7 +186,7 @@ In this maner, looking at a CPS function feels almost analogous to looking at an
 7. After the continuation is applied to `(4)`, the code continues with the next line.
 8. Finally, applying `return` to `ans` results in program exit.
 
-**NOTE:** Just like how it was earlier, the last line of the recursive call to `rev` should be:
+**NOTE:** Because of η-reduction, the last line of the recursive case in `rev` should be:
 ```haskell
 append xs' (x:Nil) return
 ```
