@@ -384,6 +384,10 @@ For this chapter's exercises, we will translate `interp` into a new interpreter 
     "Function from " <> clos.name <>
     " returns " <> show clos.body <>
     ", with context " <> show clos.env
+derive instance eqValueC :: Eq ValueD
+derive instance eqClosure :: Eq Closure
+derive instance eqTerm :: Eq Term
+derive instance eqEnvC :: Eq (Env ValueD)
 #data ValueD = ND Number
             | BD Boolean
             | FD Closure
@@ -417,10 +421,8 @@ Correctly implementing the above should result in identical behavior for `interp
 interpD _ (Num i)    = ND i
 interpD e (Sub x y)  = ND (calcValueD e (-) x y)
 interpD e (Mul x y)  = ND (calcValueD e (*) x y)
-interpD e (IsZero x) =
-  BD $ case interpD e x of
-    ND 0.0 -> true
-    _      -> false
+interpD e (IsZero x) = -- also different
+  BD $ interpD e x == ND 0.0 
 interpD e (If x y z) =
   case interpD e x of
     BD b | b         -> interpD e y
@@ -441,5 +443,7 @@ and obtain more detailed answers:
 ```haskell
 Function from y returns x, with context {x: (ND 6.0)}
 ```
+
+**Aside:** In `interpD`, `IsZero` is able to take full advantage of PureScript's `(==)` operator, while in `interp` it was not! This is thanks to the `Closure` type, which, unlike a PureScript function value, can derive the `Eq` class!
 
 {%pagination chapter1#chapter3%}
