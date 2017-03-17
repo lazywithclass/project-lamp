@@ -686,7 +686,7 @@ Try `testCPS` with:
 testCPS fibFactC lte120 0 addC (1..5) id
 ```
 Which does the following:
-1. `factC` is mapped over the list `(1..5)`.
+1. `fibFactC` is mapped over the list `(1..5)`.
 2. All elements greater than `120` is removed from the result of `(1)`.
 3. The resulting list from `(2)` is summed.
 
