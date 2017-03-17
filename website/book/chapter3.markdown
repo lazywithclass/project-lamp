@@ -591,7 +591,6 @@ FC (makeClosure "y" (Var "x") (Ext {name:"x",val:(NC 6.0)} EmptyEnv))
 
 # Exercises:
 
-### i. CPS Basic Functions
 * Define a CPSed `fact` function.
 
 {% repl_only factCPS#fact :: Int -> Int
@@ -659,9 +658,36 @@ foldListC base build Nil return =
 foldListC base build (x:xs) return =
     undefined%}
 
+*Why no tests?* How about this one?
+{% repl_only testCPS#testCPS :: forall a b c r.
+           (a -> (b -> r) -> r) ->
+           (b -> (Boolean -> r) -> r) ->
+           c -> (b -> c -> (c -> r) -> r) ->
+           List a -> (c -> r) -> r
+testCPS foo pred base build xs return =
+  mapC foo xs       $ \mapd ->
+  filterC pred mapd $ \fild ->
+  foldListC base build fild return%}
 
-### ii. BONUS: Implement a State Machine
+`testCPS` will trigger a type error if the types of `mapC`, `filterC` and `foldListC` are incorrect!
 
-maybe this is too much?
+Here are some sample functions to pass to `testCPS`--feel free to add a few of your own!
+{% basic samples#-- for param foo:
+fibFactC a k = fibC a (\a -> factC a k)
+
+-- for param pred:
+lte120 x k = k (x <= 120)
+
+-- for param build:
+addC x y k = k (x + y)%}
+
+Try `testCPS` with:
+```haskell
+testCPS fibFactC lte120 0 addC (1..5) id
+```
+Which does the following:
+1. `factC` is mapped over the list `(1..5)`.
+2. All elements greater than `120` is removed from the result of `(1)`.
+3. The resulting list from `(2)` is summed.
 
 {%pagination chapter2#%}
