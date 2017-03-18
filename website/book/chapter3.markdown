@@ -589,7 +589,7 @@ FC (makeClosure "y" (Var "x") (Ext {name:"x",val:(NC 6.0)} EmptyEnv))
 fact 0 = 1
 fact n = n * fact (n - 1)
 
-factC :: Int -> (Int -> Int) -> Int
+factC :: forall r. Int -> (Int -> r) -> r
 factC 0 k = undefined
 factC n k = undefined%}
 
@@ -600,7 +600,7 @@ ack 0 n = n + 1
 ack m 0 = ack (m - 1) 1
 ack m n = ack (m - 1) (ack m (n - 1))
 
-ackC :: Int -> Int -> (Int -> Int) -> Int
+ackC :: forall r. Int -> Int -> (Int -> r) -> r
 ackC 0 n k = undefined
 ackC m 0 k = undefined
 ackC m n k = undefined%}
@@ -612,7 +612,7 @@ fib x | x == 0 || x == 1 = x
       | otherwise =
         fib (x - 2) + fib (x - 1)
 
-fibC :: Int -> (Int -> Int) -> Int
+fibC :: forall r. Int -> (Int -> r) -> r
 fibC x k | x == 0 || x == 1 = undefined
          | otherwise        = undefined%}
 		  
