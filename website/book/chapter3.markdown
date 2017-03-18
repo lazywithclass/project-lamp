@@ -150,8 +150,7 @@ rev Nil k    =
   k Nil
 rev (x:xs) k =
   rev xs $ \xs' ->
-  append xs' (x:Nil) $ \ans ->
-  k ans%}
+  append xs' (x:Nil) k%}
 **NOTE:** Don't forget to use `id` when calling these functions!
 
 Here, we've implemented `rev` to first evaluate the recursive call to itself. Doing this, we discover that the recursive call to `rev` *must* happen before the call to `append`! This is because `append` depends on the result of the `rev` computation, which is made clearer when written in CPS style. For example, it is impossible to evaluate the call to `append` without first having `xs'`, the reversed list.
@@ -163,8 +162,7 @@ In a CPSed function, every call is a tail call. This is a side-effect of regaini
 ```haskell
 rev (x:xs) k =
   rev xs $ \xs' ->
-  append xs' (x:Nil) $ \ans ->
-  k ans
+  append xs' (x:Nil) k
 ```
 Then, let's add a bit of whitespace, η-exand and rename our continuation variable, `k`:
 ```haskell
