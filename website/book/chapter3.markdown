@@ -184,12 +184,6 @@ In this maner, looking at a CPS function feels almost analogous to looking at an
 7. After the continuation is applied to `(4)`, the code continues with the next line.
 8. Finally, applying `return` to `ans` results in program exit.
 
-**NOTE:** Because of η-reduction, the last line of the recursive case in `rev` should be:
-```haskell
-append xs' (x:Nil) return
-```
-In this case, we η-expanded to appeal to the more familiar structure of imperative code.
-
 ## 2. CPS the Interpreter -- Implementation
 *We're bringing interpreters back!*
 
