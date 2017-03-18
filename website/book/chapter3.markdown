@@ -14,14 +14,14 @@ custom_js:
 
 # Chapter 3 - Continuing w/ Style
 
-In this chapter, we introduce *continuations* and writing functions in *continuation passing style* (CPS). We also discuss the reasons for writing CPSed programs.
+In this chapter, we introduce *continuations* and writing functions in *continuation passing style* (CPS). Writing in CPS provide functional programs control flow simillar to that of imperative ones.
 
 ## 1. Continuation Passing Style
-In essence, a continuation is a higher-order function that abstracts over an extended content for performing a certain computation. This is much more easily explained in a functional language, since we can treat continuations simply as a special form of accumulator, where the value being "accumulated" is a function. Doing this also has the added benefit of providing control over program evaluation.
+In essence, a continuation is a higher-order function that abstracts over an extended context for performing a certain computation. This is much more easily explained in a functional language, since we can treat continuations simply as a special form of accumulator, where the value being "accumulated" is a function. This also has the added benefit of providing control over program evaluation.
 
 ### a. Callback Everyday -- Continuations
 <!-- Convert a few basic functions -->
-As we mentioned, a continuation is a higher-order function and writing in CPS is synonymous with using a function as an accumulator.
+As we mentioned, a continuation is a higher-order function, and writing in CPS is synonymous with using a function as an accumulator.
 
 With this in mind, let's take a few steps back and recall writing in APS. In Chapter 1, we described how to convert a generally recursive definition into one that uses APS. To reiterate, here is the definition of `sum` written using general recursion:
 ```haskell
@@ -66,9 +66,9 @@ For `(1)`, we apply a continuation to the value `0`, the original return value o
 sum xs = sumCPS xs id
   where
     sumCPS :: List Int -> (Int -> Int) -> Int
-    sumCPS Nil k    = -- (1)
+    sumCPS Nil k    = -- (1) cont is applied to base
       k 0 
-    sumCPS (x:xs) k = -- (2)
+    sumCPS (x:xs) k = -- (2) cont is extended
       sumCPS xs ((+) x >>> k)%}
 
 To further illustrate the behavior of this CPSed function, we include a trace of the `List` and continuation value in computing `(sum (1:2:3:Nil))`:
@@ -116,11 +116,11 @@ In both cases, the type of the continuation parameter is `(List a -> List a)`, s
 append Nil ys k    = ?basecase
 append (x:xs) ys k = ?recur
 ```
-In the original definition of `append`, we return `ys` in the event that `xs` is `Nil`. In the CPSed version, we return `ys` by applying `k` to it:
+In the original definition of `append`, we return `ys` in the event that `xs` is `Nil`. In the CPSed version, we return `ys` by applying the continuation `k` to it:
 ```haskell
 append Nil ys k = k $ ys
 ```
-In the recursive case, we extend our continuation to perform the `:` operation.
+In the recursive case, we extend our continuation with the `:` operation.
 ```haskell
 append (x:xs) ys k =
   append xs ys ((:) x >>> k)
@@ -130,11 +130,11 @@ Next, we implement the CPSed version of `rev`:
 rev Nil k    = ?basecase
 rev (x:xs) k = ?recur
 ```
-On the other hand, implementing `rev` requires that we perform certain computations before others. This is a quite bit different from the general functional style of writing code. Since the base case of `rev` is straightforward to implement, let's focus on its recursive case:
+Implementing `rev` requires that we reason about the order of evaluation, which is a quite bit different from the general functional style of writing code. Since the base case of `rev` is straightforward to implement, let's focus on its recursive case:
 ```haskell
 rev (x:xs) = append (rev xs) (x:Nil)
 ```
-Here, we are calling `append` *and* `rev`. The question is: *Which one happens first?* The natural answer would be that the call to `rev` happens first. In general, this is correct, but writing code in the general functional style provides us the liberty of not having to reason about which call happens first!
+Here, we are calling `append` *and* `rev`. The question is: *Which one should happen first?* The natural answer would be that the call to `rev` happens first. In general, this is correct, but writing code in the general functional style provides us the liberty of not having to reason about which call happens first!
 
 In CPSing `rev`, we gain the ability to choose which call happens first. 
 {% repl_only revCps#append :: forall a. List a -> List a ->
@@ -153,7 +153,7 @@ rev (x:xs) k =
   append xs' (x:Nil) k%}
 **NOTE:** Don't forget to use `id` when calling these functions!
 
-Here, we've implemented `rev` to first evaluate the recursive call to itself. Doing this, we discover that the recursive call to `rev` *must* happen before the call to `append`! This is because `append` depends on the result of the `rev` computation, which is made clearer when written in CPS style. For example, it is impossible to evaluate the call to `append` without first having `xs'`, the reversed list.
+Here, we've implemented `rev` to first evaluate the recursive call to itself. Doing this, we discover that the recursive call to `rev` *must* happen before the call to `append`! This is because `append` depends on the result of the `rev` computation, which is made clearer when written in CPS style. In fact, it is impossible to properly evaluate the call to `append` without having `xs'`, the result of the call to `rev`.
 
 ### c. If You Squint Your Eyes -- Tail Calls
 One might have noticed someting strange about the implementation of fully CPSed functions, especially in the way we've written `append` and `rev` above. This particular *something* is not actually strange at all but instead is one of the other benefits of writing in CPS.
@@ -173,7 +173,7 @@ rev (x:xs) Nil return =
 ```
 *Whoa*. Doesn't that look familiar?
 
-In this maner, looking at a CPS function feels almost analogous to looking at an implementation in an imperative language. That is, in the recursive case of `rev`, we *know* that the following happens:
+In this manner, looking at a CPS function (almost) feels analogous to looking at an implementation in an imperative language. That is, in the recursive case of `rev`, we *know* that the following happens:
 
 1. The call to `rev` is executed.
 2. Once `(1)` finishes, the current continuation is applied to its result.
@@ -322,14 +322,12 @@ calcValueC e op =
     _      ->
       error "arithmetic on non-number"
 ```
-Providing the proper type for `calcValueC` is rather straightforward since its specialized to only handle certain inputs. Originally, `calcValue` takes an `Env ValueC`, an `op` function, two `Term`s and returns `Number`. In this case, however, when we properly CPS this function, it returns a `ValueC`!
+Providing the proper type for `calcValueC` is rather straightforward since its specialized to only handle certain inputs. Originally, `calcValue` takes an `Env`, an `op` function, two `Term`s, and returns `Number`. In this case, however, after CPSing, it returns a `ValueC`!
 ```haskell
 calcValueC :: Env ValueC -> (Number -> Number -> Number) ->
               Term -> Term -> (Number -> ValueC) -> ValueC
 ```
-After we CPSed `calcValue`, we revealed that its return value depends on the result of a call to `interp`. This dicates the type of the continuation passed to `calcValue`, which consequently affects the type of the continuation in `onC`.
-
-We held off providing the type declaration for `onC` due to its complexity. Given that `on` is polymorphic, its type declaration must provide the correct details for the context it can be used in. This is why, in general, the practice of CPSing polymorphic functions is a bit more complex than functions with concrete return types.
+After we CPSed `calcValue`, we revealed that its return value depends on the result of a call to `interp`, which always returns a `Value`. This dicates the type of the continuation passed to `calcValueC`, which consequently affects the type of the continuation in `onC`. This is why, due to its complexity, we held off providing the type declaration for `onC`. Given that `onC` is used in the context of `calcValueC`, its type declaration must provide the details for *every* context it can be used in.
 
 To properly derive the type of `onC`, let's recall its non-CPSed type declaration:
 ```haskell
@@ -337,11 +335,11 @@ on :: forall a b c.
       (b -> b -> c) -> (a -> b) ->
       a -> a -> c
 ```
-From its type definition, it is clear that `on` function returns an element of type `c`. When we derive the type of CPSed functions similar to `onC`, we must do the following:
+When we derive the type of `onC`, we must do the following:
 
 1. Add an additional polymorphic variable, representing the function's return type.
-2. Every CPSed function argument inherits this return type.
-3. The function's return type is changed in the same way as `(2)`.
+2. Every CPSed function argument must also return this type.
+3. The function itself must also return the polymorphic return type.
 
 For `(1)`, let's add the type variable `r` to represent the return type of `onC`.
 ```haskell
@@ -349,18 +347,18 @@ forall a b c r.
 (b -> b -> c) -> (a -> b) ->
 a -> a -> c
 ```
-Then, with `(2)`, we must determine which function arguments passed to `onC` are CPSed. In this case, `onC` itself is a CPSed function and `f`, the second function argument, is also CPSed. In the context of our interpreter, since `f` includes a call to our CPSed interpreter, `interpC`, it also must be CPSed. On the other hand, `op` just calls the *non-CPSed* operations of `(*)` and `(-)`.
+Then, with `(2)`, we must determine which function arguments passed to `onC` are CPSed. In this case, `f`, the second function argument, is CPSed since it includes a call to our CPSed interpreter, `interpC`. 
 
-This means there are two functions types that need to inherit the return type `r`:
+This means there are two functions that must return the type `r`:
 ```haskell
 f :: a -> b
 on :: (b -> b -> c) -> (a -> b) -> a -> a -> c
 ```
-First, let's fix the type for `f`. Since `f` originally returned a `b`, this means that its CPSed equivalent will have a continuation of type `(b -> r)` and return an `r`, which gives us its new type:
+First, let's fix the type for `f`. Since `f` originally returned a `b`, this means that its CPSed equivalent will have a continuation of type `(b -> r)` and return an `r`:
 ```haskell
 f :: a -> (b -> r) -> r
 ```
-Lastly, we need to change the type for the entire function. Since `on` originally returned a `c`, this means that its CPSed equivalent will have a continuation of type `(c -> r)` and return an `r`.
+Lastly, we need to change the type of `onC` itself. Since `on` originally returned a `c`, this means that `onC` will have a continuation of type `(c -> r)` and return an `r`.
 ```haskell
 onC :: forall a b c r.
        (b -> b -> c) -> (a -> (b -> r) -> r) ->
@@ -385,7 +383,7 @@ calcValueC e op =
     _      ->
       error "arithmetic on non-number"%}
 
-We then use `calcValue` to define the following cases in our interpreter:
+We then use `calcValueC` to define the number `Value`d expressions of our interpreter:
 ```haskell
 interpC _ (Num i) return    =
   return $ NC i
@@ -412,13 +410,13 @@ Let's use the same strategy we employed in defining the cases for number `Value`
 
 First, let's reason about what happens in each case:
 
-For `IsZero`:
+`IsZero`:
 1. `interp` the sub-expression `x`.
-2. Determine whether the result of `(1)` is the representation of the value `0`.
-3. Wrap the result of `(2)` with the `Boolean` `Value` constructor.
+2. Determine whether the result of `(1)` is the value `0`.
+3. The result of `(2)` is wrapped with the `Boolean` `Value` constructor.
 4. The result of `(3)` is returned.
 
-For `If`:
+`If`:
 1. `interp` the sub-expression `x`.
 2. Determine the truthiness of the result of `(1)`.
 3. `interp` the appropriate sub-expression (`y` or `z`).
@@ -448,7 +446,7 @@ interpD e (App l r) = case interpD e l of
   FD foo -> applyClosure foo (interpD e r)
   _      -> error "applied non function value"
 ```
-Let's start with the `Var` case. Here, `lookUp` is *not* a CPSed function, so we can simply return its result.
+Let's start with the `Var` case. Since, `lookUp` is *not* a CPSed function, we can simply return its result.
 ```haskell
 interpC e (Var x) return   =
   return $ lookUp e x
@@ -467,17 +465,17 @@ interpC e (Lam n b) return =
 Lastly, let's implement the case for `App` expressions. In `interpD`, this case is a bit more complex than the cases for `Var` and `Lam`. For the `App` case, the following occurs:
 
 1. `interp` the sub-expression `l`.
-2. Determine whether the result of `(1)` is a function value or not.
-3. In the event that `(1)` is a function, `interp` the sub-expression `r`. Otherwise, raise an error.
+2. Determine if the result of `(1)` is a function value.
+3. If `(1)` is a function, `interp` the sub-expression `r`. Otherwise, raise an error.
 4. When `(3)` suceeds, the value of `(1)` and `(3)` are passed to `applyClosure`.
 
-Before we can CPS the case for `App`, we need to determine whether or not `applyClosure` should be a CPSed function or not. With it is original implementation:
+Before we can CPS the case for `App`, we need to determine whether or not `applyClosure` should be a CPSed function or not. Let's recall its original implementation:
 ```haskell
 applyClosure :: Closure -> ValueD -> ValueD
 applyClosure (Closure clos) val =
   interpD (extend clos.name val clos.env) clos.body
 ```
-We discover that `applyClosure` calls an `interp` function. Since our `interp` function is CPSed, `applyClosure` must also be CPSed. Luckily, this function is rather straightforward to implement. We just add a continuation parameter, then thanks to η-reduction, the new `applyClosure` looks almost exactly the same! This is because the call to `interp` in `applyClosure` is *already* a tail-call.
+We discover that `applyClosure` calls an `interp` function. Since our `interp` function is CPSed, `applyClosure` must also be CPSed. Luckily, this function is rather straightforward to implement. All we need to do is change its type to include a continuation parameter, then thanks to η-reduction, the new `applyClosure` looks almost exactly the same! This is because the call to `interp` in `applyClosure` is *already* a tail-call.
 
 {% basic closfuns#applyClosure :: Closure -> ValueC -> (ValueC -> ValueC) -> ValueC
 applyClosure (Closure clos) val =
@@ -579,6 +577,8 @@ id $
 FC (makeClosure "y" (Var "x") (Ext {name:"x",val:(NC 6.0)} EmptyEnv))
 ==
 FC (makeClosure "y" (Var "x") (Ext {name:"x",val:(NC 6.0)} EmptyEnv))
+
+> Function from y returns x, with context {x: (NC 6.0)}
 ```
 
 # Exercises:
