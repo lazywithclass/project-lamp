@@ -2,7 +2,7 @@
 module Jekyll
   class Pagination < Liquid::Tag
     #### usage
-    # `pagination` left#right
+    # `pagination` leftChapId#rightChapId
 
     def initialize(tag_name, text, tokens)
       super

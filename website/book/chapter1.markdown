@@ -44,7 +44,7 @@ Finally, functions are applied using *juxtaposition*, or simply placing the func
 
 Try writing `(partial y x)` in the REPL above.
 
-### b. The Fine Print -- β-reduction
+### b. The Fine Print -- β and η
 
 Another thing to note about functions is that they have what is known as a *local namespace*. This means that names defined within functions (i.e, the names of their parameters) are different from those defined outside of the function. In the examples above, we have defined `x` and `y` to hold the value `5` and `6`, respectively. We then later pass `x` to `foo1`, which makes reference to a certain *other* `x`. It might come as a surprise that `(partial y x)` evaluates to `6` and not `5`! The reason for this is that the `x` and `y` defined outside of `foo1` and `foo2` are said to be defined *globally*, while the `x` and `y` in the definition of `foo1` and `foo2` are defined *locally* and are thus different from one another.
 
@@ -74,6 +74,24 @@ c. Namespace Expansion
 d. Namespace Reference
 ```
 An added benefit of understanding β-reduction is that every reduction can be thought of as an *equivalence*. That is, `(partial y x)` is β-equivalent to `(foo2 foo1 y x)` and so on, even all the way down to the final value, `6`. This is only true because of a feature of purely functional languages called *referential transparency*. This means that a function, given an input (i.e., a context), will **always** return the same output, giving the programmer of a functional language the ability to reason about the equality of program *expressions* without even having to execute the code itself. Doing so is called *equational reasoning*, an example of which is included in this chapter's exercises!
+
+Aside from β, the λ-calculus features another way of reducing expressions. This secondary form of reduction is called *η-reduction*. Let's see an example where η-reduction comes in handy.
+
+Let's define a function that applies that takes two functions, `f` and `g`, then applies them both to an `a`. The `$` is another way to apply functions.
+```haskell
+compApp f g a = f $ g a
+```
+With η-reduction, we're able to simplify the definition of `compApp`. In PureScript, functions can be *composed* using the `<<<` or `>>>` operators. These signify left and right function composition.
+```haskell
+f <<< g == \x -> f (g x)
+f >>> g == \x -> g (f x)
+```
+After η-reduction, `compApp` is defined as follows:
+{% repl_only compApp#compApp f g = f <<< g%}
+This works out since the value `f <<< g` returns a function that takes one argument and allows us to remove the variable `a` from both sides of the `=` sign. This is because of the η-reduction rule in the λ-calculus:
+```
+(\x -> f x) == f 
+```
 
 ## 2. Types in Programming Languages
 Many programming languages, functional or otherwise, feature entities that are known as *types*. The more familiar types, such as `Int`, `Boolean` and `String`, are found in virtually every programming language and contain (or, in math speak, *are inhabited*) by values like `42`, `true` and `"apple"`, respectively. In some functional languages, however, types play a more intimate and dynamic role, giving them certain *benefits* and *abilities* over others. In this section, we introduce the basics about types in functional languages and as well as a few key concepts about them that every functional programmer should be aware of.
@@ -430,7 +448,7 @@ plusProp m n = m `plusFold` n === m `plus` n#plusFold :: Nat -> Nat -> Nat
 plusFold m n = undefined%}
 * Define `timesFold` that behaves like `times` but uses `foldNat`.
 
-{% testable timesId#timesProp :: Nat -> Nat -> Result
+{% testable timesProp#timesProp :: Nat -> Nat -> Result
 timesProp m n = m `timesFold` n === m `times` n#timesFold :: Nat -> Nat -> Nat
 timesFold m n = undefined%}
 * *BONUS!!* Do the same for `fact`. **HINT**: `Tuple`.

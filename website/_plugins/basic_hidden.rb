@@ -1,7 +1,7 @@
 module Jekyll
   class BasicHidden < Liquid::Tag
     #### usage
-    # `basic` id#editor
+    # `basic` id#hidden#editor
 
     def count_lines(s)
       ans = 0

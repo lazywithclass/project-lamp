@@ -42,27 +42,16 @@ module Jekyll
         '"><button class="js-go" data-identifier="',
         @id,
         '">EVAL</button> ',
-        ###### 
         '<button class="js-test" data-identifier="',
         @id,
         '">TEST</button> ',
         '<br /><code>></code> ',
-        ######
         '<code class="js-results ',
         @id,
         '"></code></p>',
-        # '<p><input class="js-console"><button class="js-go">REPL</button></p>', 
-        # '<p>Your answer: <code class="js-results quicksort"></code>',
-        # '<code class="blinking-cursor">|</code></p>',
         '<p class="js-errors ',
         @id,
-        '"></p>',
-        '<img class="js-ok ',
-        @id,
-        '" src="../images/ok.png" />',
-        '<img class="js-nok ',
-        @id,
-        '" src="../images/nok.png" />'
+        '"></p>'
       ].join('')
     end
   end
